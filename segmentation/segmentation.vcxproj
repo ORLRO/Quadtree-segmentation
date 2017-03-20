@@ -148,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CImg.h" />
+    <ClInclude Include="qt_segment.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
