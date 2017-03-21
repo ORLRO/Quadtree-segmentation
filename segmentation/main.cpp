@@ -11,7 +11,7 @@ int main() {
 	CImg<unsigned char> image("peppers.png");
 
 	image.RGBtoYCbCr().channel(0); //convert to greyscale
-	unsigned char threshold = 200;
+	unsigned char threshold = 150;
 
 	qt_segment* QT = new qt_segment(image, threshold);
 

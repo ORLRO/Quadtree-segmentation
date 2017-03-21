@@ -13,14 +13,17 @@ private:
 	class Qadrant
 	{
 	public:
-		Qadrant(Qadrant* parent, int in_x0, int in_y0, int in_length) :
-			x0(in_x0), y0(in_y0), length(in_length)
+		Qadrant(CImg<unsigned char> in_img, const Qadrant* in_parent, int in_x0, int in_y0) :
+			img(in_img), 
+			parent(in_parent),
+			x0(in_x0), y0(in_y0)
 		{
 			Qs[0][0] = NULL;		Qs[0][1] = NULL;
 			Qs[1][0] = NULL;		Qs[1][1] = NULL;
 			// assume all are NOT similar on creation
 			sLabel[0][0] = 0;		sLabel[0][1] = 1;
 			sLabel[1][0] = 2;		sLabel[1][1] = 3;
+			homogeneity = img.max() - img.min();
 		}
 		~Qadrant()
 		{
@@ -34,23 +37,25 @@ private:
 		}
 
 	public:
-		Qadrant* parent; // parent
+		const Qadrant* parent; // parent
 		Qadrant* Qs[2][2]; // quadrants in 2x2 array
 		unsigned char sLabel[2][2];//label similar quadrant with same number
+		unsigned char homogeneity; //max - min (as example)
 
-		int x0, y0; // top left pixel
-		int length; // quadrant side length
+		int x0, y0; // top left pixel coordinates in the origenal image
+		//int length; // quadrant side length (can be deduced from the img size...)
+		CImg<unsigned char> img;// portion of the image in this quadrant
 	};
 public:
 	qt_segment(CImg<unsigned char>& in_image, unsigned char in_threshold) :
 		image(in_image),
 		threshold(in_threshold)
 	{//assume image size is power of 2
-		root = new Qadrant(NULL, 0, 0, min(in_image.width(), in_image.height()));
+		root = new Qadrant(image, NULL, 0, 0);
 		//split on creation
-		//split_merge(root);
-		split(root);
-		merge(root);
+		split_merge(root);
+		//split(root);
+		//merge(root);
 	}
 	~qt_segment()
 	{
@@ -77,15 +82,10 @@ public:
 			{
 				int ix0 = current->x0;
 				int iy0 = current->y0;
-				int iL = current->length;
+				int iL = current->img.width();
 				//draw split lines
 				marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL, color); //vertical
 				marked.draw_line(ix0, iy0 + iL / 2, ix0 + iL, iy0 + iL / 2, color); //horizontal
-				//for debugging 
-				//marked.draw_text(ix0 + iL / 4, iy0 + iL / 4, to_string(current->sLabel[0][0]).c_str(), color, 0, 1, 12);
-				//marked.draw_text(ix0 + 3 * iL / 4, iy0 + iL / 4, to_string(current->sLabel[0][1]).c_str(), color, 0, 1, 12);
-				//marked.draw_text(ix0 + iL / 4, iy0 + 3 * iL / 4, to_string(current->sLabel[1][0]).c_str(), color, 0, 1, 12);
-				//marked.draw_text(ix0 + 3 * iL / 4, iy0 + 3 * iL / 4, to_string(current->sLabel[1][1]).c_str(), color, 0, 1, 12);
 				//add children to Q
 				Q.push(current->Qs[0][0]);
 				Q.push(current->Qs[0][1]);
@@ -113,7 +113,7 @@ public:
 			{
 				int ix0 = current->x0;
 				int iy0 = current->y0;
-				int iL = current->length;
+				int iL = current->img.width();
 				//draw split lines
 				if(current->sLabel[0][0] != current->sLabel[0][1])
 					marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL / 2, color); 
@@ -139,168 +139,97 @@ public:
 		return marked;
 	}
 private:
+	bool similar(const CImg<unsigned char> A, const CImg<unsigned char> B)
+	{
+		CImg<unsigned char> C = A.get_append(B);
+		return (C.max() - C.min()) < threshold;
+	}
 	void merge(Qadrant* q)
 	{
 		if (q == NULL) return;
 
-		if (q->Qs[0][0] != NULL) //leaf quadrant
+		if (q->Qs[0][0] != NULL) //not leaf quadrant
 		{
-			int ix0 = q->x0;
-			int iy0 = q->y0;
-			int iL = q->length;
-
-			CImg<unsigned char> TL = image.get_crop(ix0, iy0, ix0 + iL / 2 - 1, iy0 + iL / 2 - 1);
-			CImg<unsigned char> TR = image.get_crop(ix0 + iL / 2, iy0, ix0 + iL - 1, iy0 + iL / 2 - 1);
-			
-			CImg<unsigned char> T = TL.get_append(TR, 'x');
-			if (T.max() - T.min() < threshold)
-			{
-				q->sLabel[0][1] = 0;
-			}
-			T.assign();
-			CImg<unsigned char> BL = image.get_crop(ix0, iy0 + iL / 2, ix0 + iL / 2 - 1, iy0 + iL - 1);
-			CImg<unsigned char> L = TL.get_append(BL, 'y');
-			if (L.max() - L.min() < threshold)
-			{
-				q->sLabel[1][0] = 0;
-			}
-			L.assign();
-			TL.assign();
-			CImg<unsigned char> BR = image.get_crop(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL - 1, iy0 + iL - 1);
-			CImg<unsigned char> R = TR.get_append(BR, 'y');
-			if (R.max() - R.min() < threshold)
-			{
-				q->sLabel[1][1] = q->sLabel[0][1];
-			}
-			R.assign();
-			TR.assign();
-
-			CImg<unsigned char> B = BL.get_append(BR, 'x');
-			if (B.max() - B.min() < threshold)
-			{
-				if (q->sLabel[1][0] != 0)
-					q->sLabel[1][0] = q->sLabel[1][1];
-				else
-					q->sLabel[1][1] = 0;
-			}
-			B.assign();
-			BR.assign();
-			BL.assign();
+			merge_quadrant(q);
 
 			merge(q->Qs[0][0]);
 			merge(q->Qs[0][1]);
 			merge(q->Qs[1][0]);
 			merge(q->Qs[1][1]);
-
-		}
-		else
-		{
-			
 		}
 	}
-	void merge_level(Qadrant* q)
+	void merge_quadrant(Qadrant* q)
 	{
-		int ix0 = q->x0;
-		int iy0 = q->y0;
-		int iL = q->length;
-
-		CImg<unsigned char> TL = image.get_crop(ix0, iy0, ix0 + iL / 2 - 1, iy0 + iL / 2 - 1);
-		CImg<unsigned char> TR = image.get_crop(ix0 + iL / 2, iy0, ix0 + iL - 1, iy0 + iL / 2 - 1);
-
-		CImg<unsigned char> T = TL.get_append(TR, 'x');
-		if (T.max() - T.min() < threshold)
+		if (similar(q->Qs[0][0]->img, q->Qs[0][1]->img))
 		{
 			q->sLabel[0][1] = 0;
 		}
-		T.assign();
-		CImg<unsigned char> BL = image.get_crop(ix0, iy0 + iL / 2, ix0 + iL / 2 - 1, iy0 + iL - 1);
-		CImg<unsigned char> L = TL.get_append(BL, 'y');
-		if (L.max() - L.min() < threshold)
+		if (similar(q->Qs[0][0]->img, q->Qs[1][0]->img))
 		{
 			q->sLabel[1][0] = 0;
 		}
-		L.assign();
-		TL.assign();
-		CImg<unsigned char> BR = image.get_crop(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL - 1, iy0 + iL - 1);
-		CImg<unsigned char> R = TR.get_append(BR, 'y');
-		if (R.max() - R.min() < threshold)
+		if (similar(q->Qs[0][1]->img, q->Qs[1][1]->img)) 
 		{
 			q->sLabel[1][1] = q->sLabel[0][1];
 		}
-		R.assign();
-		TR.assign();
-
-		CImg<unsigned char> B = BL.get_append(BR, 'x');
-		if (B.max() - B.min() < threshold)
+		if (similar(q->Qs[1][0]->img, q->Qs[1][1]->img))
 		{
 			if (q->sLabel[1][0] != 0)
 				q->sLabel[1][0] = q->sLabel[1][1];
 			else
 				q->sLabel[1][1] = 0;
 		}
-		B.assign();
-		BR.assign();
-		BL.assign();
 	}
 	void split_merge(Qadrant* q)
 	{
-		const unsigned char color[] = { 255,128,64 };
 		//if not homogeneious -> split
-		int ix0 = q->x0;
-		int iy0 = q->y0;
-		int iL = q->length;
-		//if (iL > 0)
+		if (q->homogeneity > threshold)
 		{
-			CImg<unsigned char> cropped = image.get_crop(ix0, iy0, ix0 + iL, iy0 + iL);
-			if (cropped.max() - cropped.min() > threshold)
-			{
-				//cropped.assign();
-				//top-left
-				q->Qs[0][0] = new Qadrant(q, ix0, iy0, iL / 2);
-				split(q->Qs[0][0]);
-				//top-right
-				q->Qs[0][1] = new Qadrant(q, ix0 + iL / 2, iy0, iL / 2);
-				split(q->Qs[0][1]);
-				//bottom-left
-				q->Qs[1][0] = new Qadrant(q, ix0, iy0 + iL / 2, iL / 2);
-				split(q->Qs[1][0]);
-				//bottom-right
-				q->Qs[1][1] = new Qadrant(q, ix0 + iL / 2, iy0 + iL / 2, iL / 2);
-				split(q->Qs[1][1]);
-				merge_level(q); //merges only the current level in the garaph  
-			}
-			cropped.assign();
+			int ix0 = q->x0;
+			int iy0 = q->y0;
+			int iL = q->img.width();
+
+			//top-left
+			q->Qs[0][0] = new Qadrant(q->img.get_crop(0, 0, iL / 2 - 1, iL / 2 - 1), q, ix0, iy0);
+			//top-right
+			q->Qs[0][1] = new Qadrant(q->img.get_crop(iL / 2, 0, iL - 1, iL / 2 - 1), q, ix0 + iL / 2, iy0);
+			//bottom-left
+			q->Qs[1][0] = new Qadrant(q->img.get_crop(0, iL / 2, iL / 2 - 1, iL - 1), q, ix0, iy0 + iL / 2);
+			//bottom-right
+			q->Qs[1][1] = new Qadrant(q->img.get_crop(iL / 2, iL / 2, iL - 1, iL - 1), q, ix0 + iL / 2, iy0 + iL / 2);
+			
+			merge_quadrant(q); //merges only the current quadrant beeing split
+			
+			split(q->Qs[0][0]);
+			split(q->Qs[0][1]);
+			split(q->Qs[1][0]);
+			split(q->Qs[1][1]);
+			
 		}
 	}
 	void split(Qadrant* q)
 	{
-		const unsigned char color[] = { 255,128,64 };
 		//if not homogeneious -> split
-		int ix0 = q->x0; 
-		int iy0 = q->y0;
-		int iL = q->length;
-		//if (iL > 0)
+		if (q->homogeneity > threshold)
 		{
-			CImg<unsigned char> cropped = image.get_crop(ix0, iy0, ix0 + iL, iy0 + iL);
-			if (cropped.max() - cropped.min() > threshold)
-			{	
-				//cropped.assign();
-				//top-left
-				q->Qs[0][0] = new Qadrant(q, ix0, iy0, iL / 2);
-				split(q->Qs[0][0]);
-				//top-right
-				q->Qs[0][1] = new Qadrant(q, ix0 + iL / 2 , iy0, iL / 2);
-				split(q->Qs[0][1]);
-				//bottom-left
-				q->Qs[1][0] = new Qadrant(q, ix0, iy0 + iL / 2 , iL / 2);
-				split(q->Qs[1][0]);
-				//bottom-right
-				q->Qs[1][1] = new Qadrant(q, ix0 + iL / 2 , iy0 + iL / 2 , iL / 2);
-				split(q->Qs[1][1]); 
-			}
-			//else
-				cropped.assign();
+			int ix0 = q->x0;
+			int iy0 = q->y0;
+			int iL = q->img.width();
+			//cropped.assign();
+			//top-left
+			q->Qs[0][0] = new Qadrant(q->img.get_crop(0, 0, iL / 2 - 1, iL / 2 - 1), q, ix0, iy0);
+			split(q->Qs[0][0]);
+			//top-right
+			q->Qs[0][1] = new Qadrant(q->img.get_crop(iL / 2, 0, iL - 1, iL / 2 - 1), q, ix0 + iL / 2, iy0);
+			split(q->Qs[0][1]);
+			//bottom-left
+			q->Qs[1][0] = new Qadrant(q->img.get_crop(0, iL / 2, iL / 2 - 1, iL - 1), q, ix0, iy0 + iL / 2);
+			split(q->Qs[1][0]);
+			//bottom-right
+			q->Qs[1][1] = new Qadrant(q->img.get_crop(iL / 2, iL / 2, iL - 1, iL - 1), q, ix0 + iL / 2, iy0 + iL / 2);
+			split(q->Qs[1][1]); 
 		}
+		
 	}
 private:
 	Qadrant* root;
