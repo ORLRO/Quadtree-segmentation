@@ -50,12 +50,13 @@ public:
 	qt_segment(CImg<unsigned char>& in_image, unsigned char in_threshold) :
 		image(in_image),
 		threshold(in_threshold)
-	{//assume image size is power of 2
+	{
+		//assume image size is power of 2
+		//TODO: what if not
 		root = new Qadrant(image, NULL, 0, 0);
 		//split on creation
 		split_merge(root);
-		//split(root);
-		//merge(root);
+		//split(root); merge(root); 
 	}
 	~qt_segment()
 	{
@@ -200,10 +201,10 @@ private:
 			
 			merge_quadrant(q); //merges only the current quadrant beeing split
 			
-			split(q->Qs[0][0]);
-			split(q->Qs[0][1]);
-			split(q->Qs[1][0]);
-			split(q->Qs[1][1]);
+			split_merge(q->Qs[0][0]);
+			split_merge(q->Qs[0][1]);
+			split_merge(q->Qs[1][0]);
+			split_merge(q->Qs[1][1]);
 			
 		}
 	}
