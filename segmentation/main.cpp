@@ -5,7 +5,6 @@
 
 using namespace std;
 using namespace cimg_library;
-//CImgDisplay main_disp(512, 512, "Display");
 
 int main() {
 	CImg<unsigned char> image("peppers.png");
@@ -23,7 +22,7 @@ int main() {
 	while (!main_disp.is_closed()) 
 	{
 		main_disp.wait();
-		if (main_disp.is_keyARROWDOWN())
+		if (main_disp.is_keyARROWDOWN() && threshold > 5)
 		{
 			delete QT;
 			threshold -= 5;
@@ -32,7 +31,7 @@ int main() {
 			//main_disp2.display(QT->get_marked_split());
 			cout << (int)threshold << endl;
 		}
-		if (main_disp.is_keyARROWUP())
+		if (main_disp.is_keyARROWUP() && threshold < 255)
 		{
 			delete QT;
 			threshold += 5;

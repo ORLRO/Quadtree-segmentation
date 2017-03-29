@@ -3,7 +3,8 @@
 #include <queue>
 #include <algorithm>
 #include <string>
-
+#include <iostream>
+#include <stack> 
 using namespace cimg_library;
 using namespace std;
 
@@ -29,21 +30,67 @@ private:
 		{
 			if (Qs[0][0] != NULL)
 			{
-				delete Qs[0][0];
-				delete Qs[1][0];
-				delete Qs[0][1];
-				delete Qs[1][1];
+				delete Qs[0][0];delete Qs[0][1];
+				delete Qs[1][0];delete Qs[1][1];
 			}
 		}
-
+	private:
+		const Qadrant* get_first_right_parent(stack<bool>& vertical_moves) const
+		{
+			if (parent == NULL) return NULL;
+			if (parent->Qs[0][0] == this)
+			{
+				vertical_moves.push(0);
+				return parent->get_first_right_parent(vertical_moves);
+			}
+			if (parent->Qs[1][0] == this)
+			{
+				vertical_moves.push(1);
+				return parent->get_first_right_parent(vertical_moves);
+			}
+			return this;
+		}
+		const Qadrant* get_immediate_left() const
+		{
+			if (this == parent->Qs[0][0] || this == parent->Qs[1][0] || parent == NULL)
+				return NULL; //current node already on the left or root quadrant
+			if (this == parent->Qs[0][1])
+				return parent->Qs[0][0];
+			if (this == parent->Qs[1][1])
+				return parent->Qs[1][0];
+		}
+		const Qadrant* get_right_child(stack<bool>& vertical_moves) const
+		{
+			if (!vertical_moves.empty())
+			{
+				if (Qs[0][0] == NULL) // no children
+					return this;
+				bool v = vertical_moves.top();
+				vertical_moves.pop();
+				return Qs[v][1]->get_right_child(vertical_moves);
+			} 
+			return this;
+		}
+	public:
+		const Qadrant* get_left() const
+		{
+			std::stack<bool> vertical_moves;
+			//get first non left parent
+			const Qadrant* first_non_left_parent = get_first_right_parent(vertical_moves);
+			if (first_non_left_parent == NULL)
+				return NULL;
+			//get the left neighbor
+			const Qadrant* parent_left = first_non_left_parent->get_immediate_left();
+			//get right quadrant by back tracing the same vertical movements
+			return parent_left->get_right_child(vertical_moves);
+		}
 	public:
 		const Qadrant* parent; // parent
-		Qadrant* Qs[2][2]; // quadrants in 2x2 array
+		Qadrant* Qs[2][2]; //children quadrants in 2x2 array
 		unsigned char sLabel[2][2];//label similar quadrant with same number
-		unsigned char homogeneity; //max - min (as example)
+		unsigned char homogeneity; //max - min (as example) TODO: make it lambda functionc
 
 		int x0, y0; // top left pixel coordinates in the origenal image
-		//int length; // quadrant side length (can be deduced from the img size...)
 		CImg<unsigned char> img;// portion of the image in this quadrant
 	};
 public:
@@ -55,8 +102,11 @@ public:
 		//TODO: what if not
 		root = new Qadrant(image, NULL, 0, 0);
 		//split on creation
-		split_merge(root);
-		//split(root); merge(root); 
+		cimg::tic();
+		//split_merge(root);
+		
+		split(root); merge(root); 
+		cout << cimg::toc() << endl;
 	}
 	~qt_segment()
 	{
@@ -103,6 +153,7 @@ public:
 		// copy image 
 		CImg<unsigned char> marked = image;
 		const unsigned char color[] = { 255,128,64 };
+		const unsigned char blk[] = { 0,0,0 };
 		std::queue <Qadrant*> Q;
 		Q.push(root);
 		//while there is at least one discovered node
@@ -110,11 +161,14 @@ public:
 		{
 			Qadrant* current = Q.front();
 			Q.pop(); // removing the element at front
-			if (current->Qs[0][0] != NULL)
+
+			int ix0 = current->x0;
+			int iy0 = current->y0;
+			int iL = current->img.width();
+
+			if (current->Qs[0][0] != NULL)//not leaf
 			{
-				int ix0 = current->x0;
-				int iy0 = current->y0;
-				int iL = current->img.width();
+				
 				//draw split lines
 				if(current->sLabel[0][0] != current->sLabel[0][1])
 					marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL / 2, color); 
@@ -131,9 +185,26 @@ public:
 				Q.push(current->Qs[1][0]);
 				Q.push(current->Qs[1][1]);
 			}
-			else
+			else //leaf
 			{
+				if (current->parent->Qs[0][0] == current)
+				{
+					if (current->get_left() != NULL)
+						if(similar(current->img, current->get_left()->img))
+						{
+							marked.draw_line(ix0 , iy0, ix0, iy0 + iL / 2, blk);
+						}
+				}
+				else if (current->parent->Qs[1][0] == current)
+				{
+					if (current->get_left() != NULL)
+						if (similar(current->img, current->get_left()->img))
+						{
+							marked.draw_line(ix0, iy0 + iL / 2, ix0, iy0 + iL , blk);
+						}
+				}
 
+					
 			}
 
 		}
