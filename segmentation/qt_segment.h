@@ -21,9 +21,17 @@ private:
 		{
 			Qs[0][0] = NULL;		Qs[0][1] = NULL;
 			Qs[1][0] = NULL;		Qs[1][1] = NULL;
-			// assume all are NOT similar on creation
-			sLabel[0][0] = 0;		sLabel[0][1] = 1;
-			sLabel[1][0] = 2;		sLabel[1][1] = 3;
+			// assume all inner quadrants are NOT similar on creation
+			siLabel[0][0] = 0;		siLabel[0][1] = 1;
+			siLabel[1][0] = 2;		siLabel[1][1] = 3;
+
+			//assume each quadrant is similar to its outer neighbors
+			svoLabel[0][0] = true;	svoLabel[0][1] = true;
+			svoLabel[1][0] = true;	svoLabel[1][1] = true;
+
+			shoLabel[0][0] = true;	shoLabel[0][1] = true;
+			shoLabel[1][0] = true;	shoLabel[1][1] = true;
+
 			homogeneity = img.max() - img.min();
 		}
 		~Qadrant()
@@ -50,6 +58,52 @@ private:
 			}
 			return this;
 		}
+		const Qadrant* get_first_left_parent(stack<bool>& vertical_moves) const
+		{
+			if (parent == NULL) return NULL;
+			if (parent->Qs[0][1] == this)
+			{
+				vertical_moves.push(0);
+				return parent->get_first_left_parent(vertical_moves);
+			}
+			if (parent->Qs[1][1] == this)
+			{
+				vertical_moves.push(1);
+				return parent->get_first_left_parent(vertical_moves);
+			}
+			return this;
+		}
+		const Qadrant* get_first_top_parent(stack<bool>& horizontal_moves) const
+		{
+			if (parent == NULL) return NULL;
+			if (parent->Qs[1][0] == this)
+			{
+				horizontal_moves.push(0);
+				return parent->get_first_top_parent(horizontal_moves);
+			}
+			if (parent->Qs[1][1] == this)
+			{
+				horizontal_moves.push(1);
+				return parent->get_first_top_parent(horizontal_moves);
+			}
+			return this;
+		}
+		const Qadrant* get_first_bottom_parent(stack<bool>& horizontal_moves) const
+		{
+			if (parent == NULL) return NULL;
+			if (parent->Qs[0][0] == this)
+			{
+				horizontal_moves.push(0);
+				return parent->get_first_bottom_parent(horizontal_moves);
+			}
+			if (parent->Qs[0][1] == this)
+			{
+				horizontal_moves.push(1);
+				return parent->get_first_bottom_parent(horizontal_moves);
+			}
+			return this;
+		}
+
 		const Qadrant* get_immediate_left() const
 		{
 			if (this == parent->Qs[0][0] || this == parent->Qs[1][0] || parent == NULL)
@@ -59,6 +113,34 @@ private:
 			if (this == parent->Qs[1][1])
 				return parent->Qs[1][0];
 		}
+		const Qadrant* get_immediate_right() const
+		{
+			if (this == parent->Qs[0][1] || this == parent->Qs[1][1] || parent == NULL)
+				return NULL; //current node already on the right or root quadrant
+			if (this == parent->Qs[0][0])
+				return parent->Qs[0][1];
+			if (this == parent->Qs[1][0])
+				return parent->Qs[1][1];
+		}
+		const Qadrant* get_immediate_top() const
+		{
+			if (this == parent->Qs[0][0] || this == parent->Qs[0][1] || parent == NULL)
+				return NULL; //current node already on the top or root quadrant
+			if (this == parent->Qs[1][0])
+				return parent->Qs[0][0];
+			if (this == parent->Qs[1][1])
+				return parent->Qs[0][1];
+		}
+		const Qadrant* get_immediate_bottom() const
+		{
+			if (this == parent->Qs[1][0] || this == parent->Qs[1][1] || parent == NULL)
+				return NULL; //current node already on the bottom or root quadrant
+			if (this == parent->Qs[0][0])
+				return parent->Qs[1][0];
+			if (this == parent->Qs[0][1])
+				return parent->Qs[1][1];
+		}
+
 		const Qadrant* get_right_child(stack<bool>& vertical_moves) const
 		{
 			if (!vertical_moves.empty())
@@ -69,6 +151,42 @@ private:
 				vertical_moves.pop();
 				return Qs[v][1]->get_right_child(vertical_moves);
 			} 
+			return this;
+		}
+		const Qadrant* get_left_child(stack<bool>& vertical_moves) const
+		{
+			if (!vertical_moves.empty())
+			{
+				if (Qs[0][0] == NULL) // no children
+					return this;
+				bool v = vertical_moves.top();
+				vertical_moves.pop();
+				return Qs[v][0]->get_left_child(vertical_moves);
+			}
+			return this;
+		}
+		const Qadrant* get_top_child(stack<bool>& horizontal_moves) const
+		{
+			if (!horizontal_moves.empty())
+			{
+				if (Qs[0][0] == NULL) // no children
+					return this;
+				bool h = horizontal_moves.top();
+				horizontal_moves.pop();
+				return Qs[0][h]->get_top_child(horizontal_moves);
+			}
+			return this;
+		}
+		const Qadrant* get_bottom_child(stack<bool>& horizontal_moves) const
+		{
+			if (!horizontal_moves.empty())
+			{
+				if (Qs[0][0] == NULL) // no children
+					return this;
+				bool h = horizontal_moves.top();
+				horizontal_moves.pop();
+				return Qs[1][h]->get_bottom_child(horizontal_moves);
+			}
 			return this;
 		}
 	public:
@@ -84,10 +202,56 @@ private:
 			//get right quadrant by back tracing the same vertical movements
 			return parent_left->get_right_child(vertical_moves);
 		}
+		const Qadrant* get_right() const
+		{
+			std::stack<bool> vertical_moves;
+			//get first non left parent
+			const Qadrant* first_non_right_parent = get_first_left_parent(vertical_moves);
+			if (first_non_right_parent == NULL)
+				return NULL;
+			//get the left neighbor
+			const Qadrant* parent_right = first_non_right_parent->get_immediate_right();
+			//get right quadrant by back tracing the same vertical movements
+			return parent_right->get_left_child(vertical_moves);
+		}
+		const Qadrant* get_top() const
+		{
+			std::stack<bool> horizontal_moves;
+			//get first non left parent
+			const Qadrant* first_non_top_parent = get_first_bottom_parent(horizontal_moves);
+			if (first_non_top_parent == NULL)
+				return NULL;
+			//get the left neighbor
+			const Qadrant* parent_top = first_non_top_parent->get_immediate_top();
+			//get right quadrant by back tracing the same vertical movements
+			return parent_top->get_bottom_child(horizontal_moves);
+		}
+		const Qadrant* get_bottom() const
+		{
+			std::stack<bool> horizontal_moves;
+			//get first non left parent
+			const Qadrant* first_non_bottom_parent = get_first_top_parent(horizontal_moves);
+			if (first_non_bottom_parent == NULL)
+				return NULL;
+			//get the left neighbor
+			const Qadrant* parent_bottom = first_non_bottom_parent->get_immediate_bottom();
+			//get right quadrant by back tracing the same vertical movements
+			return parent_bottom->get_top_child(horizontal_moves);
+		}
+		bool isRoot() const
+		{
+			return parent == NULL;
+		}
+		bool isLeaf() const
+		{
+			return Qs[0][0] == NULL;
+		}
 	public:
 		const Qadrant* parent; // parent
 		Qadrant* Qs[2][2]; //children quadrants in 2x2 array
-		unsigned char sLabel[2][2];//label similar quadrant with same number
+		unsigned char siLabel[2][2];//label similar quadrant with same number (i: inner)
+		bool svoLabel[2][2]; // is quadrant [s]imilar to its [v]ertical [o]uter neighbor 
+		bool shoLabel[2][2]; // is quadrant [s]imilar to its [h]orizontal [o]uter neighbor 
 		unsigned char homogeneity; //max - min (as example) TODO: make it lambda functionc
 
 		int x0, y0; // top left pixel coordinates in the origenal image
@@ -106,7 +270,7 @@ public:
 		//split_merge(root);
 		
 		split(root); merge(root); 
-		cout << cimg::toc() << endl;
+		cimg::toc();
 	}
 	~qt_segment()
 	{
@@ -121,27 +285,66 @@ public:
 		if (root == NULL) return CImg<unsigned char>();
 		// copy image 
 		CImg<unsigned char> marked = image;
-		const unsigned char color[] = { 255,128,64 };
+		const unsigned char color[] = { 128,128,128 };
+		const unsigned char blk[] = { 0,0,0 };
 		std::queue <Qadrant*> Q;
 		Q.push(root);
 		//while there is at least one discovered node
 		while (!Q.empty())
 		{
 			Qadrant* current = Q.front();
+			int ix0 = current->x0;
+			int iy0 = current->y0;
+			int iL = current->img.width();
+
+			
 			Q.pop(); // removing the element at front
 			if (current->Qs[0][0] != NULL)
 			{
-				int ix0 = current->x0;
-				int iy0 = current->y0;
-				int iL = current->img.width();
 				//draw split lines
 				marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL, color); //vertical
 				marked.draw_line(ix0, iy0 + iL / 2, ix0 + iL, iy0 + iL / 2, color); //horizontal
+				
 				//add children to Q
 				Q.push(current->Qs[0][0]);
 				Q.push(current->Qs[0][1]);
 				Q.push(current->Qs[1][0]);
 				Q.push(current->Qs[1][1]);
+			}
+			else
+			{
+				//draw [i]nner split lines
+				if (current->siLabel[0][0] != current->siLabel[0][1])
+					marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL / 2, color);
+				if (current->siLabel[1][0] != current->siLabel[1][1])
+					marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL, color);
+
+				if (current->siLabel[0][0] != current->siLabel[1][0])
+					marked.draw_line(ix0, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL / 2, color);
+				if (current->siLabel[0][1] != current->siLabel[1][1])
+					marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL, iy0 + iL / 2, color);
+
+				//draw [o]uter [v]ertical similarity split lines (horizontal lines)
+				if (!current->svoLabel[0][0])
+					marked.draw_line(ix0, iy0, ix0 + iL, iy0, color);
+				if (!current->svoLabel[0][1])
+					marked.draw_line(ix0 + iL, iy0, ix0 + iL, iy0, color);
+
+				if (!current->svoLabel[1][0])
+					marked.draw_line(ix0, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				if (!current->svoLabel[1][1])
+					marked.draw_line(ix0 + iL, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				//draw [o]uter [h]orizontal similarity split lines (vertical lines)
+				if (!current->shoLabel[0][0])
+					marked.draw_line(ix0, iy0, ix0, iy0 + iL, color);
+				if (!current->shoLabel[0][1])
+					marked.draw_line(ix0 + iL, iy0, ix0 + iL, iy0 + iL, color);
+
+				if (!current->shoLabel[1][0])
+					marked.draw_line(ix0, iy0 + iL, ix0, iy0 + iL, color);
+				if (!current->shoLabel[1][1])
+					marked.draw_line(ix0 + iL, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				
 			}
 
 		}
@@ -151,8 +354,8 @@ public:
 	{
 		if (root == NULL) return CImg<unsigned char>();
 		// copy image 
-		CImg<unsigned char> marked = image;
-		const unsigned char color[] = { 255,128,64 };
+		CImg<unsigned char> marked = CImg<unsigned char>(512, 512, 1, 1, 0);
+		const unsigned char color[] = { 128,128,128 };
 		const unsigned char blk[] = { 0,0,0 };
 		std::queue <Qadrant*> Q;
 		Q.push(root);
@@ -168,18 +371,6 @@ public:
 
 			if (current->Qs[0][0] != NULL)//not leaf
 			{
-				
-				//draw split lines
-				if(current->sLabel[0][0] != current->sLabel[0][1])
-					marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL / 2, color); 
-				if (current->sLabel[1][0] != current->sLabel[1][1])
-					marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL, color);
-				
-				if (current->sLabel[0][0] != current->sLabel[1][0])
-					marked.draw_line(ix0, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL / 2, color); 
-				if (current->sLabel[0][1] != current->sLabel[1][1])
-					marked.draw_line(ix0 + iL /2, iy0 + iL / 2, ix0 + iL, iy0 + iL / 2, color);
-
 				Q.push(current->Qs[0][0]);
 				Q.push(current->Qs[0][1]);
 				Q.push(current->Qs[1][0]);
@@ -187,24 +378,36 @@ public:
 			}
 			else //leaf
 			{
-				if (current->parent->Qs[0][0] == current)
-				{
-					if (current->get_left() != NULL)
-						if(similar(current->img, current->get_left()->img))
-						{
-							marked.draw_line(ix0 , iy0, ix0, iy0 + iL / 2, blk);
-						}
-				}
-				else if (current->parent->Qs[1][0] == current)
-				{
-					if (current->get_left() != NULL)
-						if (similar(current->img, current->get_left()->img))
-						{
-							marked.draw_line(ix0, iy0 + iL / 2, ix0, iy0 + iL , blk);
-						}
-				}
+				//draw [i]nner split lines
+				if (current->siLabel[0][0] != current->siLabel[0][1])
+					marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL / 2, color);
+				if (current->siLabel[1][0] != current->siLabel[1][1])
+					marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL, color);
 
-					
+				if (current->siLabel[0][0] != current->siLabel[1][0])
+					marked.draw_line(ix0, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL / 2, color);
+				if (current->siLabel[0][1] != current->siLabel[1][1])
+					marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL, iy0 + iL / 2, color);
+				//draw [o]uter [v]ertical similarity split lines (horizontal lines)
+				if (!current->svoLabel[0][0])
+					marked.draw_line(ix0, iy0, ix0 + iL, iy0, color);
+				if (!current->svoLabel[0][1])
+					marked.draw_line(ix0 + iL, iy0, ix0 + iL, iy0, color);
+
+				if (!current->svoLabel[1][0])
+					marked.draw_line(ix0, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				if (!current->svoLabel[1][1])
+					marked.draw_line(ix0 + iL, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				//draw [o]uter [h]orizontal similarity split lines (vertical lines)
+				if (!current->shoLabel[0][0])
+					marked.draw_line(ix0, iy0, ix0, iy0 + iL, color);
+				if (!current->shoLabel[0][1])
+					marked.draw_line(ix0 + iL, iy0, ix0 + iL, iy0 + iL, color);
+
+				if (!current->shoLabel[1][0])
+					marked.draw_line(ix0, iy0 + iL, ix0, iy0 + iL, color);
+				if (!current->shoLabel[1][1])
+					marked.draw_line(ix0 + iL, iy0 + iL, ix0 + iL, iy0 + iL, color);
 			}
 
 		}
@@ -213,44 +416,126 @@ public:
 private:
 	bool similar(const CImg<unsigned char> A, const CImg<unsigned char> B)
 	{
-		CImg<unsigned char> C = A.get_append(B);
-		return (C.max() - C.min()) < threshold;
+		return (std::max(A.max(), B.max()) - std::min(A.min(), B.min())) < threshold;
 	}
 	void merge(Qadrant* q)
 	{
 		if (q == NULL) return;
 
-		if (q->Qs[0][0] != NULL) //not leaf quadrant
+		if (q->Qs[0][0] != NULL) //not leaf quadrant(TODO: make isLeaf method & isRoot)
 		{
-			merge_quadrant(q);
-
+			merge_quadrant_inside(q);
+			
 			merge(q->Qs[0][0]);
 			merge(q->Qs[0][1]);
 			merge(q->Qs[1][0]);
 			merge(q->Qs[1][1]);
 		}
+		else //leaf
+		{
+			merge_quadrant_inside(q);
+			merge_quadrant_outside(q);
+		}
 	}
-	void merge_quadrant(Qadrant* q)
+	void merge_quadrant_inside(Qadrant* q)
 	{
-		if (similar(q->Qs[0][0]->img, q->Qs[0][1]->img))
+		if (q->Qs[0][0] != NULL)
 		{
-			q->sLabel[0][1] = 0;
+			if (similar(q->Qs[0][0]->img, q->Qs[0][1]->img))
+			{
+				q->siLabel[0][1] = 0;
+			}
+			if (similar(q->Qs[0][0]->img, q->Qs[1][0]->img))
+			{
+				q->siLabel[1][0] = 0;
+			}
+			if (similar(q->Qs[0][1]->img, q->Qs[1][1]->img))
+			{
+				q->siLabel[1][1] = q->siLabel[0][1];
+			}
+			if (similar(q->Qs[1][0]->img, q->Qs[1][1]->img))
+			{
+				if (q->siLabel[1][0] != 0)
+					q->siLabel[1][0] = q->siLabel[1][1];
+				else
+					q->siLabel[1][1] = 0;
+			}
 		}
-		if (similar(q->Qs[0][0]->img, q->Qs[1][0]->img))
+		else
 		{
-			q->sLabel[1][0] = 0;
+			q->siLabel[0][0] = 0;	q->siLabel[0][1] = 0;
+			q->siLabel[1][0] = 0;	q->siLabel[1][1] = 0;
 		}
-		if (similar(q->Qs[0][1]->img, q->Qs[1][1]->img)) 
+		
+	}
+	void merge_quadrant_outside(Qadrant* q)
+	{
+		if (q->parent != NULL && q->Qs[0][0] == NULL) //process leaf quadrants only 
 		{
-			q->sLabel[1][1] = q->sLabel[0][1];
+			if (q->parent->Qs[0][0] == q)//top-left
+			{
+				const Qadrant* left = q->get_left();
+				const Qadrant* top = q->get_top();
+				if (left != NULL && left->Qs[0][0] == NULL && !similar(q->img, left->img)) q->shoLabel[0][0] = false;
+				if (top != NULL && top->Qs[0][0] == NULL && !similar(q->img, top->img)) q->svoLabel[0][0] = false;
+			}
+			else if (q->parent->Qs[0][1] == q)//top-right
+			{
+				const Qadrant* right = q->get_right();
+				const Qadrant* top = q->get_top();
+				if (right != NULL && right->Qs[0][0] == NULL && !similar(q->img, right->img)) q->shoLabel[0][1] = false;
+				if (top != NULL && top->Qs[0][0] == NULL && !similar(q->img, top->img)) q->svoLabel[0][1] = false;
+			}
+			else if (q->parent->Qs[1][0] == q)//bottom-left
+			{
+				const Qadrant* left = q->get_left();
+				const Qadrant* bottom = q->get_bottom();
+				if (left != NULL && left->Qs[0][0] == NULL && !similar(q->img, left->img)) q->shoLabel[1][0] = false;
+				if (bottom != NULL && bottom->Qs[0][0] == NULL && !similar(q->img, bottom->img)) q->svoLabel[1][0] = false;
+			}
+			else if (q->parent->Qs[1][1] == q)//bottom-right
+			{
+				const Qadrant* right = q->get_right();
+				const Qadrant* bottom = q->get_bottom();
+				if (right != NULL && right->Qs[0][0] == NULL && !similar(q->img, right->img)) q->shoLabel[1][1] = false;
+				if (bottom != NULL && bottom->Qs[0][0] == NULL && !similar(q->img, bottom->img)) q->svoLabel[1][1] = false;
+			}
 		}
-		if (similar(q->Qs[1][0]->img, q->Qs[1][1]->img))
-		{
-			if (q->sLabel[1][0] != 0)
-				q->sLabel[1][0] = q->sLabel[1][1];
-			else
-				q->sLabel[1][1] = 0;
-		}
+		//if (q->parent->Qs[0][0] == q)// what is parent is NULL!!
+		//{
+		//	if (q->get_left() != NULL)
+		//		if (!similar(q->img, q->get_left()->img))
+
+		//	if (q->get_top() != NULL)
+		//		if (!similar(q->img, q->get_top()->img))
+		//}
+		//else if (q->parent->Qs[1][0] == q)
+		//{
+		//	if (q->get_left() != NULL)
+		//		if (!similar(q->img, q->get_left()->img))
+
+		//	if (q->get_bottom() != NULL)
+		//		if (!similar(q->img, q->get_bottom()->img))
+
+		//}
+		//else if (q->parent->Qs[0][1] == q)
+		//{
+		//	if (q->get_right() != NULL)
+		//		if (!similar(q->img, q->get_right()->img))
+
+		//	if (q->get_top() != NULL)
+		//		if (!similar(q->img, q->get_top()->img))
+
+		//}
+		//else if (q->parent->Qs[1][1] == q)
+		//{
+		//	if (q->get_right() != NULL)
+		//		if (!similar(q->img, q->get_right()->img))
+
+		//	if (q->get_bottom() != NULL)
+		//		if (!similar(q->img, q->get_bottom()->img))
+
+		//}
 	}
 	void split_merge(Qadrant* q)
 	{
@@ -270,7 +555,7 @@ private:
 			//bottom-right
 			q->Qs[1][1] = new Qadrant(q->img.get_crop(iL / 2, iL / 2, iL - 1, iL - 1), q, ix0 + iL / 2, iy0 + iL / 2);
 			
-			merge_quadrant(q); //merges only the current quadrant beeing split
+			merge_quadrant_inside(q); //merges only the current quadrant beeing split
 			
 			split_merge(q->Qs[0][0]);
 			split_merge(q->Qs[0][1]);
