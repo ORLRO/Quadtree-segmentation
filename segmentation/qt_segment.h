@@ -31,8 +31,6 @@ private:
 
 			shoLabel[0][0] = true;	shoLabel[0][1] = true;
 			shoLabel[1][0] = true;	shoLabel[1][1] = true;
-
-			homogeneity = img.max() - img.min();
 		}
 		~Qadrant()
 		{
@@ -252,15 +250,17 @@ private:
 		unsigned char siLabel[2][2];//label similar quadrant with same number (i: inner)
 		bool svoLabel[2][2]; // is quadrant [s]imilar to its [v]ertical [o]uter neighbor 
 		bool shoLabel[2][2]; // is quadrant [s]imilar to its [h]orizontal [o]uter neighbor 
-		unsigned char homogeneity; //max - min (as example) TODO: make it lambda functionc
 
 		int x0, y0; // top left pixel coordinates in the origenal image
 		CImg<unsigned char> img;// portion of the image in this quadrant
 	};
 public:
-	qt_segment(CImg<unsigned char>& in_image, unsigned char in_threshold) :
+	qt_segment(CImg<unsigned char>& in_image, 
+		bool(*in_homogeneous)(const CImg<unsigned char>&),
+		bool(*in_similar)(const CImg<unsigned char>&, const CImg<unsigned char>& )) :
 		image(in_image),
-		threshold(in_threshold)
+		homogeneous(in_homogeneous),
+		similar(in_similar)
 	{
 		//assume image size is power of 2
 		//TODO: what if not
@@ -414,10 +414,7 @@ public:
 		return marked;
 	}
 private:
-	bool similar(const CImg<unsigned char> A, const CImg<unsigned char> B)
-	{
-		return (std::max(A.max(), B.max()) - std::min(A.min(), B.min())) < threshold;
-	}
+
 	void merge(Qadrant* q)
 	{
 		if (q == NULL) return;
@@ -540,7 +537,7 @@ private:
 	void split_merge(Qadrant* q)
 	{
 		//if not homogeneious -> split
-		if (q->homogeneity > threshold)
+		if (!homogeneous(q->img))
 		{
 			int ix0 = q->x0;
 			int iy0 = q->y0;
@@ -567,12 +564,11 @@ private:
 	void split(Qadrant* q)
 	{
 		//if not homogeneious -> split
-		if (q->homogeneity > threshold)
+		if (!homogeneous(q->img))
 		{
 			int ix0 = q->x0;
 			int iy0 = q->y0;
 			int iL = q->img.width();
-			//cropped.assign();
 			//top-left
 			q->Qs[0][0] = new Qadrant(q->img.get_crop(0, 0, iL / 2 - 1, iL / 2 - 1), q, ix0, iy0);
 			split(q->Qs[0][0]);
@@ -592,6 +588,8 @@ private:
 	Qadrant* root;
 	CImg<unsigned char>& image;
 	unsigned char threshold;
+	bool(*homogeneous)(const CImg<unsigned char>&);
+	bool(*similar)(const CImg<unsigned char>&, const CImg<unsigned char>&);
 };
 
 
