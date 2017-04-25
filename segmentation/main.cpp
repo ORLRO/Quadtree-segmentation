@@ -10,8 +10,7 @@
 using namespace std;
 using namespace cimg_library;
 
-unsigned char threshold = 90;
-
+unsigned char threshold = 90;//must be global (-_-)
 bool similar(const CImg<unsigned char>& A, const CImg<unsigned char>& B)
 {
 	return (std::max(A.max(), B.max()) - std::min(A.min(), B.min())) < threshold;
@@ -25,8 +24,7 @@ int main() {
 	CImg<unsigned char> image("cropped-dfmm-tomato2.bmp");
 
 	image.RGBtoYCbCr().channel(0); //convert to greyscale
-	
-	//TODO: pass lambda
+
 	qt_segment* QT = new qt_segment(image,  homogeneous, similar );
 
 	CImg<unsigned char>marked = QT->get_marked_split();

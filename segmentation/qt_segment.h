@@ -34,7 +34,7 @@ private:
 		}
 		~Qadrant()
 		{
-			if (Qs[0][0] != NULL)
+			if (!isLeaf())
 			{
 				delete Qs[0][0];delete Qs[0][1];
 				delete Qs[1][0];delete Qs[1][1];
@@ -43,7 +43,7 @@ private:
 	private:
 		const Qadrant* get_first_right_parent(stack<bool>& vertical_moves) const
 		{
-			if (parent == NULL) return NULL;
+			if (isRoot()) return NULL;
 			if (parent->Qs[0][0] == this)
 			{
 				vertical_moves.push(0);
@@ -58,7 +58,7 @@ private:
 		}
 		const Qadrant* get_first_left_parent(stack<bool>& vertical_moves) const
 		{
-			if (parent == NULL) return NULL;
+			if (isRoot()) return NULL;
 			if (parent->Qs[0][1] == this)
 			{
 				vertical_moves.push(0);
@@ -73,7 +73,7 @@ private:
 		}
 		const Qadrant* get_first_top_parent(stack<bool>& horizontal_moves) const
 		{
-			if (parent == NULL) return NULL;
+			if (isRoot()) return NULL;
 			if (parent->Qs[1][0] == this)
 			{
 				horizontal_moves.push(0);
@@ -88,7 +88,7 @@ private:
 		}
 		const Qadrant* get_first_bottom_parent(stack<bool>& horizontal_moves) const
 		{
-			if (parent == NULL) return NULL;
+			if (isRoot()) return NULL;
 			if (parent->Qs[0][0] == this)
 			{
 				horizontal_moves.push(0);
@@ -104,7 +104,7 @@ private:
 
 		const Qadrant* get_immediate_left() const
 		{
-			if (this == parent->Qs[0][0] || this == parent->Qs[1][0] || parent == NULL)
+			if (this == parent->Qs[0][0] || this == parent->Qs[1][0] || isRoot())
 				return NULL; //current node already on the left or root quadrant
 			if (this == parent->Qs[0][1])
 				return parent->Qs[0][0];
@@ -113,7 +113,7 @@ private:
 		}
 		const Qadrant* get_immediate_right() const
 		{
-			if (this == parent->Qs[0][1] || this == parent->Qs[1][1] || parent == NULL)
+			if (this == parent->Qs[0][1] || this == parent->Qs[1][1] || isRoot())
 				return NULL; //current node already on the right or root quadrant
 			if (this == parent->Qs[0][0])
 				return parent->Qs[0][1];
@@ -122,7 +122,7 @@ private:
 		}
 		const Qadrant* get_immediate_top() const
 		{
-			if (this == parent->Qs[0][0] || this == parent->Qs[0][1] || parent == NULL)
+			if (this == parent->Qs[0][0] || this == parent->Qs[0][1] || isRoot())
 				return NULL; //current node already on the top or root quadrant
 			if (this == parent->Qs[1][0])
 				return parent->Qs[0][0];
@@ -131,7 +131,7 @@ private:
 		}
 		const Qadrant* get_immediate_bottom() const
 		{
-			if (this == parent->Qs[1][0] || this == parent->Qs[1][1] || parent == NULL)
+			if (this == parent->Qs[1][0] || this == parent->Qs[1][1] || isRoot())
 				return NULL; //current node already on the bottom or root quadrant
 			if (this == parent->Qs[0][0])
 				return parent->Qs[1][0];
@@ -143,7 +143,7 @@ private:
 		{
 			if (!vertical_moves.empty())
 			{
-				if (Qs[0][0] == NULL) // no children
+				if (isLeaf())
 					return this;
 				bool v = vertical_moves.top();
 				vertical_moves.pop();
@@ -155,7 +155,7 @@ private:
 		{
 			if (!vertical_moves.empty())
 			{
-				if (Qs[0][0] == NULL) // no children
+				if (isLeaf())
 					return this;
 				bool v = vertical_moves.top();
 				vertical_moves.pop();
@@ -167,7 +167,7 @@ private:
 		{
 			if (!horizontal_moves.empty())
 			{
-				if (Qs[0][0] == NULL) // no children
+				if (isLeaf())
 					return this;
 				bool h = horizontal_moves.top();
 				horizontal_moves.pop();
@@ -179,7 +179,7 @@ private:
 		{
 			if (!horizontal_moves.empty())
 			{
-				if (Qs[0][0] == NULL) // no children
+				if (isLeaf())
 					return this;
 				bool h = horizontal_moves.top();
 				horizontal_moves.pop();
@@ -299,7 +299,7 @@ public:
 
 			
 			Q.pop(); // removing the element at front
-			if (current->Qs[0][0] != NULL)
+			if (!current->isLeaf())
 			{
 				//draw split lines
 				marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL, color); //vertical
@@ -369,7 +369,7 @@ public:
 			int iy0 = current->y0;
 			int iL = current->img.width();
 
-			if (current->Qs[0][0] != NULL)//not leaf
+			if (!current->isLeaf())//not leaf
 			{
 				Q.push(current->Qs[0][0]);
 				Q.push(current->Qs[0][1]);
@@ -419,7 +419,7 @@ private:
 	{
 		if (q == NULL) return;
 
-		if (q->Qs[0][0] != NULL) //not leaf quadrant(TODO: make isLeaf method & isRoot)
+		if (!q->isLeaf())
 		{
 			merge_quadrant_inside(q);
 			
@@ -436,7 +436,7 @@ private:
 	}
 	void merge_quadrant_inside(Qadrant* q)
 	{
-		if (q->Qs[0][0] != NULL)
+		if (!q->isLeaf())
 		{
 			if (similar(q->Qs[0][0]->img, q->Qs[0][1]->img))
 			{
@@ -467,72 +467,37 @@ private:
 	}
 	void merge_quadrant_outside(Qadrant* q)
 	{
-		if (q->parent != NULL && q->Qs[0][0] == NULL) //process leaf quadrants only 
+		if (!q->isRoot() && q->isLeaf()) //process leaf quadrants only 
 		{
 			if (q->parent->Qs[0][0] == q)//top-left
 			{
 				const Qadrant* left = q->get_left();
 				const Qadrant* top = q->get_top();
-				if (left != NULL && left->Qs[0][0] == NULL && !similar(q->img, left->img)) q->shoLabel[0][0] = false;
-				if (top != NULL && top->Qs[0][0] == NULL && !similar(q->img, top->img)) q->svoLabel[0][0] = false;
+				if (left != NULL && left->isLeaf() && !similar(q->img, left->img)) q->shoLabel[0][0] = false;
+				if (top != NULL && top->isLeaf() && !similar(q->img, top->img)) q->svoLabel[0][0] = false;
 			}
 			else if (q->parent->Qs[0][1] == q)//top-right
 			{
 				const Qadrant* right = q->get_right();
 				const Qadrant* top = q->get_top();
-				if (right != NULL && right->Qs[0][0] == NULL && !similar(q->img, right->img)) q->shoLabel[0][1] = false;
-				if (top != NULL && top->Qs[0][0] == NULL && !similar(q->img, top->img)) q->svoLabel[0][1] = false;
+				if (right != NULL && right->isLeaf() && !similar(q->img, right->img)) q->shoLabel[0][1] = false;
+				if (top != NULL && top->isLeaf() && !similar(q->img, top->img)) q->svoLabel[0][1] = false;
 			}
 			else if (q->parent->Qs[1][0] == q)//bottom-left
 			{
 				const Qadrant* left = q->get_left();
 				const Qadrant* bottom = q->get_bottom();
-				if (left != NULL && left->Qs[0][0] == NULL && !similar(q->img, left->img)) q->shoLabel[1][0] = false;
-				if (bottom != NULL && bottom->Qs[0][0] == NULL && !similar(q->img, bottom->img)) q->svoLabel[1][0] = false;
+				if (left != NULL && left->isLeaf() && !similar(q->img, left->img)) q->shoLabel[1][0] = false;
+				if (bottom != NULL && bottom->isLeaf() && !similar(q->img, bottom->img)) q->svoLabel[1][0] = false;
 			}
 			else if (q->parent->Qs[1][1] == q)//bottom-right
 			{
 				const Qadrant* right = q->get_right();
 				const Qadrant* bottom = q->get_bottom();
-				if (right != NULL && right->Qs[0][0] == NULL && !similar(q->img, right->img)) q->shoLabel[1][1] = false;
-				if (bottom != NULL && bottom->Qs[0][0] == NULL && !similar(q->img, bottom->img)) q->svoLabel[1][1] = false;
+				if (right != NULL && right->isLeaf() && !similar(q->img, right->img)) q->shoLabel[1][1] = false;
+				if (bottom != NULL && bottom->isLeaf() && !similar(q->img, bottom->img)) q->svoLabel[1][1] = false;
 			}
 		}
-		//if (q->parent->Qs[0][0] == q)// what is parent is NULL!!
-		//{
-		//	if (q->get_left() != NULL)
-		//		if (!similar(q->img, q->get_left()->img))
-
-		//	if (q->get_top() != NULL)
-		//		if (!similar(q->img, q->get_top()->img))
-		//}
-		//else if (q->parent->Qs[1][0] == q)
-		//{
-		//	if (q->get_left() != NULL)
-		//		if (!similar(q->img, q->get_left()->img))
-
-		//	if (q->get_bottom() != NULL)
-		//		if (!similar(q->img, q->get_bottom()->img))
-
-		//}
-		//else if (q->parent->Qs[0][1] == q)
-		//{
-		//	if (q->get_right() != NULL)
-		//		if (!similar(q->img, q->get_right()->img))
-
-		//	if (q->get_top() != NULL)
-		//		if (!similar(q->img, q->get_top()->img))
-
-		//}
-		//else if (q->parent->Qs[1][1] == q)
-		//{
-		//	if (q->get_right() != NULL)
-		//		if (!similar(q->img, q->get_right()->img))
-
-		//	if (q->get_bottom() != NULL)
-		//		if (!similar(q->img, q->get_bottom()->img))
-
-		//}
 	}
 	void split_merge(Qadrant* q)
 	{
