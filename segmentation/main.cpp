@@ -10,7 +10,7 @@
 using namespace std;
 using namespace cimg_library;
 
-unsigned char threshold = 90;//must be global (-_-)
+unsigned char threshold = 90;//must be global (-_-) TODO: deal with it
 bool similar(const CImg<unsigned char>& A, const CImg<unsigned char>& B)
 {
 	return (std::max(A.max(), B.max()) - std::min(A.min(), B.min())) < threshold;
