@@ -1,4 +1,5 @@
 #define cimg_use_png
+
 #include "CImg.h"
 #include "qt_segment.h"
 #include <iostream>
@@ -11,6 +12,7 @@ using namespace std;
 using namespace cimg_library;
 
 unsigned char threshold = 90;//must be global (-_-) TODO: deal with it
+					//OR hard coded in the function (un-controlable)
 bool similar(const CImg<unsigned char>& A, const CImg<unsigned char>& B)
 {
 	return (std::max(A.max(), B.max()) - std::min(A.min(), B.min())) < threshold;

@@ -2222,33 +2222,33 @@ namespace cimg_library_suffixed {
 			*const t_underscore = cimg::t_normal;
 #endif
 
-		inline std::FILE* output(std::FILE *file = 0);
-		inline void info();
+		std::FILE* output(std::FILE *file = 0);
+		void info();
 
 		//! Avoid warning messages due to unused parameters. Do nothing actually.
 		template<typename T>
-		inline void unused(const T&, ...) {}
+		void unused(const T&, ...) {}
 
 		// [internal] Lock/unlock a mutex for managing concurrent threads.
 		// 'lock_mode' can be { 0=unlock | 1=lock | 2=trylock }.
 		// 'n' can be in [0,31] but mutex range [0,15] is reserved by CImg.
-		inline int mutex(const unsigned int n, const int lock_mode = 1);
+		int mutex(const unsigned int n, const int lock_mode = 1);
 
-		inline unsigned int& _exception_mode(const unsigned int value, const bool is_set) {
+		unsigned int& _exception_mode(const unsigned int value, const bool is_set) {
 			static unsigned int mode = cimg_verbosity;
 			if (is_set) { cimg::mutex(0); mode = value<4 ? value : 4; cimg::mutex(0, 0); }
 			return mode;
 		}
 
 		// Functions to return standard streams 'stdin', 'stdout' and 'stderr'.
-		inline FILE* _stdin();
-		inline FILE* _stdout();
-		inline FILE* _stderr();
+		FILE* _stdin();
+		FILE* _stdout();
+		FILE* _stderr();
 
 		// Mandatory because Microsoft's _snprintf() and _vsnprintf() do not add the '\0' character
 		// at the end of the string.
 #if cimg_OS==2 && defined(_MSC_VER)
-		inline int _snprintf(char *const s, const size_t size, const char *const format, ...) {
+		int _snprintf(char *const s, const size_t size, const char *const format, ...) {
 			va_list ap;
 			va_start(ap, format);
 			const int result = _vsnprintf(s, size, format, ap);
@@ -2256,7 +2256,7 @@ namespace cimg_library_suffixed {
 			return result;
 		}
 
-		inline int _vsnprintf(char *const s, const size_t size, const char *const format, va_list ap) {
+		int _vsnprintf(char *const s, const size_t size, const char *const format, va_list ap) {
 			int result = -1;
 			cimg::mutex(6);
 			if (size) result = _vsnprintf_s(s, size, _TRUNCATE, format, ap);
@@ -2268,7 +2268,7 @@ namespace cimg_library_suffixed {
 		// Mutex-protected version of sscanf, sprintf and snprintf.
 		// Used only MacOSX, as it seems those functions are not re-entrant on MacOSX.
 #elif defined(__MACOSX__) || defined(__APPLE__)
-		inline int _sscanf(const char *const s, const char *const format, ...) {
+		int _sscanf(const char *const s, const char *const format, ...) {
 			cimg::mutex(6);
 			va_list args;
 			va_start(args, format);
@@ -2278,7 +2278,7 @@ namespace cimg_library_suffixed {
 			return result;
 		}
 
-		inline int _sprintf(char *const s, const char *const format, ...) {
+		int _sprintf(char *const s, const char *const format, ...) {
 			cimg::mutex(6);
 			va_list args;
 			va_start(args, format);
@@ -2288,7 +2288,7 @@ namespace cimg_library_suffixed {
 			return result;
 		}
 
-		inline int _snprintf(char *const s, const size_t n, const char *const format, ...) {
+		int _snprintf(char *const s, const size_t n, const char *const format, ...) {
 			cimg::mutex(6);
 			va_list args;
 			va_start(args, format);
@@ -2298,7 +2298,7 @@ namespace cimg_library_suffixed {
 			return result;
 		}
 
-		inline int _vsnprintf(char *const s, const size_t size, const char* format, va_list ap) {
+		int _vsnprintf(char *const s, const size_t size, const char* format, va_list ap) {
 			cimg::mutex(6);
 			const int result = std::vsnprintf(s, size, format, ap);
 			cimg::mutex(6, 0);
@@ -2316,7 +2316,7 @@ namespace cimg_library_suffixed {
 		- \c 3: Do as \c 1 + add extra debug warnings (slow down the code!).
 		- \c 4: Do as \c 2 + add extra debug warnings (slow down the code!).
 		**/
-		inline unsigned int& exception_mode(const unsigned int mode) {
+		unsigned int& exception_mode(const unsigned int mode) {
 			return _exception_mode(mode, true);
 		}
 
@@ -2324,7 +2324,7 @@ namespace cimg_library_suffixed {
 		/**
 		\note By default, return the value of configuration macro \c cimg_verbosity
 		**/
-		inline unsigned int& exception_mode() {
+		unsigned int& exception_mode() {
 			return _exception_mode(0, false);
 		}
 
@@ -2336,31 +2336,31 @@ namespace cimg_library_suffixed {
 		- \c 1: Always parallelize.
 		- \c 2: Adaptive parallelization mode (default behavior).
 		**/
-		inline unsigned int& _openmp_mode(const unsigned int value, const bool is_set) {
+		unsigned int& _openmp_mode(const unsigned int value, const bool is_set) {
 			static unsigned int mode = 2;
 			if (is_set) { cimg::mutex(0); mode = value<2 ? value : 2; cimg::mutex(0, 0); }
 			return mode;
 		}
 
-		inline unsigned int& openmp_mode(const unsigned int mode) {
+		unsigned int& openmp_mode(const unsigned int mode) {
 			return _openmp_mode(mode, true);
 		}
 
 		//! Return current \CImg openmp mode.
-		inline unsigned int& openmp_mode() {
+		unsigned int& openmp_mode() {
 			return _openmp_mode(0, false);
 		}
 
 #define cimg_openmp_if(cond) if (cimg::openmp_mode()==1 || (cimg::openmp_mode()>1 && (cond)))
 
 		// Display a simple dialog box, and wait for the user's response.
-		inline int dialog(const char *const title, const char *const msg, const char *const button1_label = "OK",
+		int dialog(const char *const title, const char *const msg, const char *const button1_label = "OK",
 			const char *const button2_label = 0, const char *const button3_label = 0,
 			const char *const button4_label = 0, const char *const button5_label = 0,
 			const char *const button6_label = 0, const bool centering = false);
 
 		// Evaluate math expression.
-		inline double eval(const char *const expression,
+		double eval(const char *const expression,
 			const double x = 0, const double y = 0, const double z = 0, const double c = 0);
 
 	}
@@ -3020,7 +3020,7 @@ namespace cimg_library_suffixed {
 #elif defined(cimg_main)
 		X11_info& X11_attr() { static X11_info val; return val; }
 #else
-		inline X11_info& X11_attr() { static X11_info val; return val; }
+		X11_info& X11_attr() { static X11_info val; return val; }
 #endif
 #define cimg_lock_display() cimg::mutex(15)
 #define cimg_unlock_display() cimg::mutex(15,0)
@@ -3035,7 +3035,7 @@ namespace cimg_library_suffixed {
 #elif defined(cimg_main)
 		Win32_info& Win32_attr() { static Win32_info val; return val; }
 #else
-		inline Win32_info& Win32_attr() { static Win32_info val; return val; }
+		Win32_info& Win32_attr() { static Win32_info val; return val; }
 #endif
 #endif
 
@@ -3064,7 +3064,7 @@ namespace cimg_library_suffixed {
 #elif defined(cimg_main)
 		Mutex_info& Mutex_attr() { static Mutex_info val; return val; }
 #else
-		inline Mutex_info& Mutex_attr() { static Mutex_info val; return val; }
+		Mutex_info& Mutex_attr() { static Mutex_info val; return val; }
 #endif
 
 #if defined(cimg_use_magick)
@@ -4225,7 +4225,7 @@ namespace cimg_library_suffixed {
 		\param file Desired output stream. Set to \c 0 to get the currently used output stream only.
 		\return Currently used output stream.
 		**/
-		inline std::FILE* output(std::FILE *file) {
+		std::FILE* output(std::FILE *file) {
 			cimg::mutex(1);
 			static std::FILE *res = cimg::_stderr();
 			if (file) res = file;
@@ -4234,7 +4234,7 @@ namespace cimg_library_suffixed {
 		}
 
 		// Return number of available CPU cores.
-		inline unsigned int nb_cpus() {
+		unsigned int nb_cpus() {
 			unsigned int res = 1;
 #if cimg_OS==2
 			SYSTEM_INFO sysinfo;
@@ -4247,7 +4247,7 @@ namespace cimg_library_suffixed {
 		}
 
 		// Lock/unlock mutex for CImg multi-thread programming.
-		inline int mutex(const unsigned int n, const int lock_mode) {
+		int mutex(const unsigned int n, const int lock_mode) {
 			switch (lock_mode) {
 			case 0: cimg::Mutex_attr().unlock(n); return 0;
 			case 1: cimg::Mutex_attr().lock(n); return 0;
@@ -4270,7 +4270,7 @@ namespace cimg_library_suffixed {
 		\endcode
 		if \c warning_message can be arbitrary, to prevent nasty memory access.
 		**/
-		inline void warn(const char *const format, ...) {
+		void warn(const char *const format, ...) {
 			if (cimg::exception_mode() >= 1) {
 				char *const message = new char[16384];
 				std::va_list ap;
@@ -4295,7 +4295,7 @@ namespace cimg_library_suffixed {
 		but it does not open an extra console windows
 		on Windows-based systems.
 		**/
-		inline int system(const char *const command, const char *const module_name = 0) {
+		int system(const char *const command, const char *const module_name = 0) {
 			cimg::unused(module_name);
 #ifdef cimg_no_system_calls
 			return -1;
@@ -4336,55 +4336,55 @@ namespace cimg_library_suffixed {
 
 		//! Return a reference to a temporary variable of type T.
 		template<typename T>
-		inline T& temporary(const T&) {
+		T& temporary(const T&) {
 			static T temp;
 			return temp;
 		}
 
 		//! Exchange values of variables \c a and \c b.
 		template<typename T>
-		inline void swap(T& a, T& b) { T t = a; a = b; b = t; }
+		void swap(T& a, T& b) { T t = a; a = b; b = t; }
 
 		//! Exchange values of variables (\c a1,\c a2) and (\c b1,\c b2).
 		template<typename T1, typename T2>
-		inline void swap(T1& a1, T1& b1, T2& a2, T2& b2) {
+		void swap(T1& a1, T1& b1, T2& a2, T2& b2) {
 			cimg::swap(a1, b1); cimg::swap(a2, b2);
 		}
 
 		//! Exchange values of variables (\c a1,\c a2,\c a3) and (\c b1,\c b2,\c b3).
 		template<typename T1, typename T2, typename T3>
-		inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3) {
+		void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3) {
 			cimg::swap(a1, b1, a2, b2); cimg::swap(a3, b3);
 		}
 
 		//! Exchange values of variables (\c a1,\c a2,...,\c a4) and (\c b1,\c b2,...,\c b4).
 		template<typename T1, typename T2, typename T3, typename T4>
-		inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4) {
+		void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4) {
 			cimg::swap(a1, b1, a2, b2, a3, b3); cimg::swap(a4, b4);
 		}
 
 		//! Exchange values of variables (\c a1,\c a2,...,\c a5) and (\c b1,\c b2,...,\c b5).
 		template<typename T1, typename T2, typename T3, typename T4, typename T5>
-		inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5) {
+		void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5) {
 			cimg::swap(a1, b1, a2, b2, a3, b3, a4, b4); cimg::swap(a5, b5);
 		}
 
 		//! Exchange values of variables (\c a1,\c a2,...,\c a6) and (\c b1,\c b2,...,\c b6).
 		template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-		inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6) {
+		void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6) {
 			cimg::swap(a1, b1, a2, b2, a3, b3, a4, b4, a5, b5); cimg::swap(a6, b6);
 		}
 
 		//! Exchange values of variables (\c a1,\c a2,...,\c a7) and (\c b1,\c b2,...,\c b7).
 		template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-		inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
+		void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
 			T7& a7, T7& b7) {
 			cimg::swap(a1, b1, a2, b2, a3, b3, a4, b4, a5, b5, a6, b6); cimg::swap(a7, b7);
 		}
 
 		//! Exchange values of variables (\c a1,\c a2,...,\c a8) and (\c b1,\c b2,...,\c b8).
 		template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-		inline void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
+		void swap(T1& a1, T1& b1, T2& a2, T2& b2, T3& a3, T3& b3, T4& a4, T4& b4, T5& a5, T5& b5, T6& a6, T6& b6,
 			T7& a7, T7& b7, T8& a8, T8& b8) {
 			cimg::swap(a1, b1, a2, b2, a3, b3, a4, b4, a5, b5, a6, b6, a7, b7); cimg::swap(a8, b8);
 		}
@@ -4393,7 +4393,7 @@ namespace cimg_library_suffixed {
 		/**
 		\return \c false for <i>Little Endian</i> or \c true for <i>Big Endian</i>.
 		**/
-		inline bool endianness() {
+		bool endianness() {
 			const int x = 1;
 			return ((unsigned char*)&x)[0] ? false : true;
 		}
@@ -4404,7 +4404,7 @@ namespace cimg_library_suffixed {
 		\param size Number of buffer elements to reverse.
 		**/
 		template<typename T>
-		inline void invert_endianness(T* const buffer, const cimg_ulong size) {
+		void invert_endianness(T* const buffer, const cimg_ulong size) {
 			if (size) switch (sizeof(T)) {
 			case 1: break;
 			case 2: { for (unsigned short *ptr = (unsigned short*)buffer + size; ptr>(unsigned short*)buffer; ) {
@@ -4431,13 +4431,13 @@ namespace cimg_library_suffixed {
 		\return Reference to reversed variable.
 		**/
 		template<typename T>
-		inline T& invert_endianness(T& a) {
+		T& invert_endianness(T& a) {
 			invert_endianness(&a, 1);
 			return a;
 		}
 
 		// Conversion functions to get more precision when trying to store unsigned ints values as floats.
-		inline unsigned int float2uint(const float f) {
+		unsigned int float2uint(const float f) {
 			int tmp = 0;
 			std::memcpy(&tmp, &f, sizeof(float));
 			if (tmp >= 0) return (unsigned int)f;
@@ -4447,7 +4447,7 @@ namespace cimg_library_suffixed {
 			return ((u) << 1) >> 1; // set sign bit to 0.
 		}
 
-		inline float uint2float(const unsigned int u) {
+		float uint2float(const unsigned int u) {
 			if (u<(1U << 19)) return (float)u;  // Consider safe storage of unsigned int as floats until 19bits (i.e 524287).
 			float f;
 			const unsigned int v = u | (1U << (8 * sizeof(unsigned int) - 1)); // set sign bit to 1.
@@ -4460,7 +4460,7 @@ namespace cimg_library_suffixed {
 		/**
 		\note The timer does not necessarily starts from \c 0.
 		**/
-		inline cimg_ulong time() {
+		cimg_ulong time() {
 #if cimg_OS==1
 			struct timeval st_time;
 			gettimeofday(&st_time, 0);
@@ -4475,13 +4475,13 @@ namespace cimg_library_suffixed {
 		}
 
 		// Implement a tic/toc mechanism to display elapsed time of algorithms.
-		inline cimg_ulong tictoc(const bool is_tic);
+		cimg_ulong tictoc(const bool is_tic);
 
 		//! Start tic/toc timer for time measurement between code instructions.
 		/**
 		\return Current value of the timer (same value as time()).
 		**/
-		inline cimg_ulong tic() {
+		cimg_ulong tic() {
 			return cimg::tictoc(true);
 		}
 
@@ -4489,7 +4489,7 @@ namespace cimg_library_suffixed {
 		/**
 		\return Time elapsed (in ms) since last call to tic().
 		**/
-		inline cimg_ulong toc() {
+		cimg_ulong toc() {
 			return cimg::tictoc(false);
 		}
 
@@ -4499,7 +4499,7 @@ namespace cimg_library_suffixed {
 		\note This function frees the CPU ressources during the sleeping time.
 		It can be used to temporize your program properly, without wasting CPU time.
 		**/
-		inline void sleep(const unsigned int milliseconds) {
+		void sleep(const unsigned int milliseconds) {
 #if cimg_OS==1
 			struct timespec tv;
 			tv.tv_sec = milliseconds / 1000;
@@ -4512,7 +4512,7 @@ namespace cimg_library_suffixed {
 #endif
 		}
 
-		inline unsigned int _wait(const unsigned int milliseconds, cimg_ulong& timer) {
+		unsigned int _wait(const unsigned int milliseconds, cimg_ulong& timer) {
 			if (!timer) timer = cimg::time();
 			const cimg_ulong current_time = cimg::time();
 			if (current_time >= timer + milliseconds) { timer = current_time; return 0; }
@@ -4529,7 +4529,7 @@ namespace cimg_library_suffixed {
 		\note Same as sleep() with a waiting time computed with regard to the last call
 		of wait(). It may be used to temporize your program properly, without wasting CPU time.
 		**/
-		inline cimg_long wait(const unsigned int milliseconds) {
+		cimg_long wait(const unsigned int milliseconds) {
 			cimg::mutex(3);
 			static cimg_ulong timer = 0;
 			if (!timer) timer = cimg::time();
@@ -4546,7 +4546,7 @@ namespace cimg_library_suffixed {
 #include <stdint.h>
 
 		// Use a custom RNG.
-		inline unsigned int _rand(const unsigned int seed = 0, const bool set_seed = false) {
+		unsigned int _rand(const unsigned int seed = 0, const bool set_seed = false) {
 			static cimg_ulong next = 0xB16B00B5;
 			cimg::mutex(4);
 			if (set_seed) next = (cimg_ulong)seed;
@@ -4555,7 +4555,7 @@ namespace cimg_library_suffixed {
 			return (unsigned int)(next & 0xFFFFFFU);
 		}
 
-		inline void srand() {
+		void srand() {
 			const unsigned int t = (unsigned int)cimg::time();
 #if cimg_OS==1
 			cimg::_rand(t + (unsigned int)getpid(), true);
@@ -4566,11 +4566,11 @@ namespace cimg_library_suffixed {
 #endif
 		}
 
-		inline void srand(const unsigned int seed) {
+		void srand(const unsigned int seed) {
 			_rand(seed, true);
 		}
 
-		inline double rand(const double val_min, const double val_max) {
+		double rand(const double val_min, const double val_max) {
 			const double val = cimg::_rand() / 16777215.;
 			return val_min + (val_max - val_min)*val;
 		}
@@ -4578,7 +4578,7 @@ namespace cimg_library_suffixed {
 #else
 
 		// Use the system RNG.
-		inline void srand() {
+		void srand() {
 			const unsigned int t = (unsigned int)cimg::time();
 #if cimg_OS==1 || defined(__BORLANDC__)
 			std::srand(t + (unsigned int)getpid());
@@ -4589,14 +4589,14 @@ namespace cimg_library_suffixed {
 #endif
 		}
 
-		inline void srand(const unsigned int seed) {
+		void srand(const unsigned int seed) {
 			std::srand(seed);
 		}
 
 		//! Return a random variable uniformely distributed between [val_min,val_max].
 		/**
 		**/
-		inline double rand(const double val_min, const double val_max) {
+		double rand(const double val_min, const double val_max) {
 			const double val = (double)std::rand() / RAND_MAX;
 			return val_min + (val_max - val_min)*val;
 		}
@@ -4605,14 +4605,14 @@ namespace cimg_library_suffixed {
 		//! Return a random variable uniformely distributed between [0,val_max].
 		/**
 		**/
-		inline double rand(const double val_max = 1) {
+		double rand(const double val_max = 1) {
 			return cimg::rand(0, val_max);
 		}
 
 		//! Return a random variable following a gaussian distribution and a standard deviation of 1.
 		/**
 		**/
-		inline double grand() {
+		double grand() {
 			double x1, w;
 			do {
 				const double x2 = cimg::rand(-1, 1);
@@ -4625,7 +4625,7 @@ namespace cimg_library_suffixed {
 		//! Return a random variable following a Poisson distribution of parameter z.
 		/**
 		**/
-		inline unsigned int prand(const double z) {
+		unsigned int prand(const double z) {
 			if (z <= 1.0e-10) return 0;
 			if (z>100) return (unsigned int)((std::sqrt(z) * cimg::grand()) + z);
 			unsigned int k = 0;
@@ -4636,139 +4636,139 @@ namespace cimg_library_suffixed {
 
 		//! Cut (i.e. clamp) value in specified interval.
 		template<typename T, typename t>
-		inline T cut(const T& val, const t& val_min, const t& val_max) {
+		T cut(const T& val, const t& val_min, const t& val_max) {
 			return val<val_min ? (T)val_min : val>val_max ? (T)val_max : val;
 		}
 
 		//! Bitwise-rotate value on the left.
 		template<typename T>
-		inline T rol(const T& a, const unsigned int n = 1) {
+		T rol(const T& a, const unsigned int n = 1) {
 			return n ? (T)((a << n) | (a >> ((sizeof(T) << 3) - n))) : a;
 		}
 
-		inline float rol(const float a, const unsigned int n = 1) {
+		float rol(const float a, const unsigned int n = 1) {
 			return (float)rol((int)a, n);
 		}
 
-		inline double rol(const double a, const unsigned int n = 1) {
+		double rol(const double a, const unsigned int n = 1) {
 			return (double)rol((cimg_long)a, n);
 		}
 
-		inline double rol(const long double a, const unsigned int n = 1) {
+		double rol(const long double a, const unsigned int n = 1) {
 			return (double)rol((cimg_long)a, n);
 		}
 
 #ifdef cimg_use_half
-		inline half rol(const half a, const unsigned int n = 1) {
+		half rol(const half a, const unsigned int n = 1) {
 			return (half)rol((int)a, n);
 		}
 #endif
 
 		//! Bitwise-rotate value on the right.
 		template<typename T>
-		inline T ror(const T& a, const unsigned int n = 1) {
+		T ror(const T& a, const unsigned int n = 1) {
 			return n ? (T)((a >> n) | (a << ((sizeof(T) << 3) - n))) : a;
 		}
 
-		inline float ror(const float a, const unsigned int n = 1) {
+		float ror(const float a, const unsigned int n = 1) {
 			return (float)ror((int)a, n);
 		}
 
-		inline double ror(const double a, const unsigned int n = 1) {
+		double ror(const double a, const unsigned int n = 1) {
 			return (double)ror((cimg_long)a, n);
 		}
 
-		inline double ror(const long double a, const unsigned int n = 1) {
+		double ror(const long double a, const unsigned int n = 1) {
 			return (double)ror((cimg_long)a, n);
 		}
 
 #ifdef cimg_use_half
-		inline half ror(const half a, const unsigned int n = 1) {
+		half ror(const half a, const unsigned int n = 1) {
 			return (half)ror((int)a, n);
 		}
 #endif
 
 		//! Return absolute value of a value.
 		template<typename T>
-		inline T abs(const T& a) {
+		T abs(const T& a) {
 			return a >= 0 ? a : -a;
 		}
-		inline bool abs(const bool a) {
+		bool abs(const bool a) {
 			return a;
 		}
-		inline int abs(const unsigned char a) {
+		int abs(const unsigned char a) {
 			return (int)a;
 		}
-		inline int abs(const unsigned short a) {
+		int abs(const unsigned short a) {
 			return (int)a;
 		}
-		inline int abs(const unsigned int a) {
+		int abs(const unsigned int a) {
 			return (int)a;
 		}
-		inline int abs(const int a) {
+		int abs(const int a) {
 			return std::abs(a);
 		}
-		inline cimg_int64 abs(const cimg_uint64 a) {
+		cimg_int64 abs(const cimg_uint64 a) {
 			return (cimg_int64)a;
 		}
-		inline double abs(const double a) {
+		double abs(const double a) {
 			return std::fabs(a);
 		}
-		inline float abs(const float a) {
+		float abs(const float a) {
 			return (float)std::fabs((double)a);
 		}
 
 		//! Return square of a value.
 		template<typename T>
-		inline T sqr(const T& val) {
+		T sqr(const T& val) {
 			return val*val;
 		}
 
 		//! Return <tt>1 + log_10(x)</tt> of a value \c x.
-		inline int xln(const int x) {
+		int xln(const int x) {
 			return x>0 ? (int)(1 + std::log10((double)x)) : 1;
 		}
 
 		//! Return the minimum between three values.
 		template<typename t>
-		inline t min(const t& a, const t& b, const t& c) {
+		t min(const t& a, const t& b, const t& c) {
 			return std::min(std::min(a, b), c);
 		}
 
 		//! Return the minimum between four values.
 		template<typename t>
-		inline t min(const t& a, const t& b, const t& c, const t& d) {
+		t min(const t& a, const t& b, const t& c, const t& d) {
 			return std::min(std::min(a, b), std::min(c, d));
 		}
 
 		//! Return the maximum between three values.
 		template<typename t>
-		inline t max(const t& a, const t& b, const t& c) {
+		t max(const t& a, const t& b, const t& c) {
 			return std::max(std::max(a, b), c);
 		}
 
 		//! Return the maximum between four values.
 		template<typename t>
-		inline t max(const t& a, const t& b, const t& c, const t& d) {
+		t max(const t& a, const t& b, const t& c, const t& d) {
 			return std::max(std::max(a, b), std::max(c, d));
 		}
 
 		//! Return the sign of a value.
 		template<typename T>
-		inline T sign(const T& x) {
+		T sign(const T& x) {
 			return (T)(x<0 ? -1 : x>0);
 		}
 
 		//! Return the nearest power of 2 higher than given value.
 		template<typename T>
-		inline cimg_ulong nearest_pow2(const T& x) {
+		cimg_ulong nearest_pow2(const T& x) {
 			cimg_ulong i = 1;
 			while (x>i) i <<= 1;
 			return i;
 		}
 
 		//! Return the sinc of a given value.
-		inline double sinc(const double x) {
+		double sinc(const double x) {
 			return x ? std::sin(x) / x : 1;
 		}
 
@@ -4779,39 +4779,39 @@ namespace cimg_library_suffixed {
 		\note This modulo function accepts negative and floating-points modulo numbers, as well as variables of any type.
 		**/
 		template<typename T>
-		inline T mod(const T& x, const T& m) {
+		T mod(const T& x, const T& m) {
 			const double dx = (double)x, dm = (double)m;
 			return (T)(dx - dm * std::floor(dx / dm));
 		}
-		inline int mod(const bool x, const bool m) {
+		int mod(const bool x, const bool m) {
 			return m ? (x ? 1 : 0) : 0;
 		}
-		inline int mod(const unsigned char x, const unsigned char m) {
+		int mod(const unsigned char x, const unsigned char m) {
 			return x%m;
 		}
-		inline int mod(const char x, const char m) {
+		int mod(const char x, const char m) {
 #if defined(CHAR_MAX) && CHAR_MAX==255
 			return x%m;
 #else
 			return x >= 0 ? x%m : (x%m ? m + x%m : 0);
 #endif
 		}
-		inline int mod(const unsigned short x, const unsigned short m) {
+		int mod(const unsigned short x, const unsigned short m) {
 			return x%m;
 		}
-		inline int mod(const short x, const short m) {
+		int mod(const short x, const short m) {
 			return x >= 0 ? x%m : (x%m ? m + x%m : 0);
 		}
-		inline int mod(const unsigned int x, const unsigned int m) {
+		int mod(const unsigned int x, const unsigned int m) {
 			return (int)(x%m);
 		}
-		inline int mod(const int x, const int m) {
+		int mod(const int x, const int m) {
 			return x >= 0 ? x%m : (x%m ? m + x%m : 0);
 		}
-		inline cimg_int64 mod(const cimg_uint64 x, const cimg_uint64 m) {
+		cimg_int64 mod(const cimg_uint64 x, const cimg_uint64 m) {
 			return x%m;
 		}
-		inline cimg_int64 mod(const cimg_int64 x, const cimg_int64 m) {
+		cimg_int64 mod(const cimg_int64 x, const cimg_int64 m) {
 			return x >= 0 ? x%m : (x%m ? m + x%m : 0);
 		}
 
@@ -4822,18 +4822,18 @@ namespace cimg_library_suffixed {
 		- <i>minmod(\p a,\p b) = 0</i>, if \p a and \p b have different signs.
 		**/
 		template<typename T>
-		inline T minmod(const T& a, const T& b) {
+		T minmod(const T& a, const T& b) {
 			return a*b <= 0 ? 0 : (a>0 ? (a<b ? a : b) : (a<b ? b : a));
 		}
 
 		//! Return base-2 logarithm of a value.
-		inline double log2(const double x) {
+		double log2(const double x) {
 			const double base = std::log(2.0);
 			return std::log(x) / base;
 		}
 
 		template<typename T>
-		inline T round(const T& x) {
+		T round(const T& x) {
 			return (T)std::floor((_cimg_Tfloat)x + 0.5f);
 		}
 
@@ -4845,7 +4845,7 @@ namespace cimg_library_suffixed {
 		\return Rounded value, having the same type as input value \c x.
 		**/
 		template<typename T>
-		inline T round(const T& x, const double y, const int rounding_type = 0) {
+		T round(const T& x, const double y, const int rounding_type = 0) {
 			if (y <= 0) return x;
 			if (y == 1) switch (rounding_type) {
 			case 0: return round(x);
@@ -4858,7 +4858,7 @@ namespace cimg_library_suffixed {
 
 		//! Return x^(1/3).
 		template<typename T>
-		inline double cbrt(const T& x) {
+		double cbrt(const T& x) {
 #if cimg_use_cpp11==1
 			return std::cbrt(x);
 #else
@@ -4869,17 +4869,17 @@ namespace cimg_library_suffixed {
 		// Code to compute fast median from 2,3,5,7,9,13,25 and 49 values.
 		// (contribution by RawTherapee: http://rawtherapee.com/).
 		template<typename T>
-		inline T median(T val0, T val1) {
+		T median(T val0, T val1) {
 			return (val0 + val1) / 2;
 		}
 
 		template<typename T>
-		inline T median(T val0, T val1, T val2) {
+		T median(T val0, T val1, T val2) {
 			return std::max(std::min(val0, val1), std::min(val2, std::max(val0, val1)));
 		}
 
 		template<typename T>
-		inline T median(T val0, T val1, T val2, T val3, T val4) {
+		T median(T val0, T val1, T val2, T val3, T val4) {
 			T tmp = std::min(val0, val1);
 			val1 = std::max(val0, val1); val0 = tmp; tmp = std::min(val3, val4); val4 = std::max(val3, val4);
 			val3 = std::max(val0, tmp);  val1 = std::min(val1, val4); tmp = std::min(val1, val2); val2 = std::max(val1, val2);
@@ -4888,7 +4888,7 @@ namespace cimg_library_suffixed {
 		}
 
 		template<typename T>
-		inline T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6) {
+		T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6) {
 			T tmp = std::min(val0, val5);
 			val5 = std::max(val0, val5); val0 = tmp; tmp = std::min(val0, val3); val3 = std::max(val0, val3); val0 = tmp;
 			tmp = std::min(val1, val6); val6 = std::max(val1, val6); val1 = tmp; tmp = std::min(val2, val4);
@@ -4900,7 +4900,7 @@ namespace cimg_library_suffixed {
 		}
 
 		template<typename T>
-		inline T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6, T val7, T val8) {
+		T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6, T val7, T val8) {
 			T tmp = std::min(val1, val2);
 			val2 = std::max(val1, val2); val1 = tmp; tmp = std::min(val4, val5);
 			val5 = std::max(val4, val5); val4 = tmp; tmp = std::min(val7, val8);
@@ -4918,7 +4918,7 @@ namespace cimg_library_suffixed {
 		}
 
 		template<typename T>
-		inline T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6, T val7, T val8, T val9, T val10, T val11,
+		T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6, T val7, T val8, T val9, T val10, T val11,
 			T val12) {
 			T tmp = std::min(val1, val7);
 			val7 = std::max(val1, val7); val1 = tmp; tmp = std::min(val9, val11); val11 = std::max(val9, val11); val9 = tmp;
@@ -4946,7 +4946,7 @@ namespace cimg_library_suffixed {
 		}
 
 		template<typename T>
-		inline T median(T val0, T val1, T val2, T val3, T val4,
+		T median(T val0, T val1, T val2, T val3, T val4,
 			T val5, T val6, T val7, T val8, T val9,
 			T val10, T val11, T val12, T val13, T val14,
 			T val15, T val16, T val17, T val18, T val19,
@@ -5013,7 +5013,7 @@ namespace cimg_library_suffixed {
 		}
 
 		template<typename T>
-		inline T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6,
+		T median(T val0, T val1, T val2, T val3, T val4, T val5, T val6,
 			T val7, T val8, T val9, T val10, T val11, T val12, T val13,
 			T val14, T val15, T val16, T val17, T val18, T val19, T val20,
 			T val21, T val22, T val23, T val24, T val25, T val26, T val27,
@@ -5235,17 +5235,17 @@ namespace cimg_library_suffixed {
 
 		//! Return sqrt(x^2 + y^2).
 		template<typename T>
-		inline T hypot(const T x, const T y) {
+		T hypot(const T x, const T y) {
 			return std::sqrt(x*x + y*y);
 		}
 
 		template<typename T>
-		inline T hypot(const T x, const T y, const T z) {
+		T hypot(const T x, const T y, const T z) {
 			return std::sqrt(x*x + y*y + z*z);
 		}
 
 		template<typename T>
-		inline T _hypot(const T x, const T y) { // Slower but more precise version
+		T _hypot(const T x, const T y) { // Slower but more precise version
 			T nx = cimg::abs(x), ny = cimg::abs(y), t;
 			if (nx<ny) { t = nx; nx = ny; }
 			else t = ny;
@@ -5254,7 +5254,7 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Return the factorial of n
-		inline double factorial(const int n) {
+		double factorial(const int n) {
 			if (n<0) return cimg::type<double>::nan();
 			if (n<2) return 1;
 			double res = 2;
@@ -5263,7 +5263,7 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Return the number of permutations of k objects in a set of n objects.
-		inline double permutations(const int k, const int n, const bool with_order) {
+		double permutations(const int k, const int n, const bool with_order) {
 			if (n<0 || k<0) return cimg::type<double>::nan();
 			if (k>n) return 0;
 			double res = 1;
@@ -5271,7 +5271,7 @@ namespace cimg_library_suffixed {
 			return with_order ? res : res / cimg::factorial(k);
 		}
 
-		inline double _fibonacci(int exp) {
+		double _fibonacci(int exp) {
 			double
 				base = (1 + std::sqrt(5.0)) / 2,
 				result = 1 / std::sqrt(5.0);
@@ -5285,7 +5285,7 @@ namespace cimg_library_suffixed {
 
 		//! Calculate fibonacci number.
 		// (Precise up to n = 78, less precise for n>78).
-		inline double fibonacci(const int n) {
+		double fibonacci(const int n) {
 			if (n<0) return cimg::type<double>::nan();
 			if (n<3) return 1;
 			if (n<11) {
@@ -5308,29 +5308,29 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Convert ascii character to lower case.
-		inline char lowercase(const char x) {
+		char lowercase(const char x) {
 			return (char)((x<'A' || x>'Z') ? x : x - 'A' + 'a');
 		}
-		inline double lowercase(const double x) {
+		double lowercase(const double x) {
 			return (double)((x<'A' || x>'Z') ? x : x - 'A' + 'a');
 		}
 
 		//! Convert C-string to lower case.
-		inline void lowercase(char *const str) {
+		void lowercase(char *const str) {
 			if (str) for (char *ptr = str; *ptr; ++ptr) *ptr = lowercase(*ptr);
 		}
 
 		//! Convert ascii character to upper case.
-		inline char uppercase(const char x) {
+		char uppercase(const char x) {
 			return (char)((x<'a' || x>'z') ? x : x - 'a' + 'A');
 		}
 
-		inline double uppercase(const double x) {
+		double uppercase(const double x) {
 			return (double)((x<'a' || x>'z') ? x : x - 'a' + 'A');
 		}
 
 		//! Convert C-string to upper case.
-		inline void uppercase(char *const str) {
+		void uppercase(char *const str) {
 			if (str) for (char *ptr = str; *ptr; ++ptr) *ptr = uppercase(*ptr);
 		}
 
@@ -5341,7 +5341,7 @@ namespace cimg_library_suffixed {
 		\note Same as <tt>std::atof()</tt> extended to manage the retrieval of fractions from C-strings,
 		as in <em>"1/2"</em>.
 		**/
-		inline double atof(const char *const str) {
+		double atof(const char *const str) {
 			double x = 0, y = 1;
 			return str && cimg_sscanf(str, "%lf/%lf", &x, &y)>0 ? x / y : 0;
 		}
@@ -5354,7 +5354,7 @@ namespace cimg_library_suffixed {
 		\return \c 0 if the two strings are equal, something else otherwise.
 		\note This function has to be defined since it is not provided by all C++-compilers (not ANSI).
 		**/
-		inline int strncasecmp(const char *const str1, const char *const str2, const int l) {
+		int strncasecmp(const char *const str1, const char *const str2, const int l) {
 			if (!l) return 0;
 			if (!str1) return str2 ? -1 : 0;
 			const char *nstr1 = str1, *nstr2 = str2;
@@ -5369,7 +5369,7 @@ namespace cimg_library_suffixed {
 		\return \c 0 if the two strings are equal, something else otherwise.
 		\note This function has to be defined since it is not provided by all C++-compilers (not ANSI).
 		**/
-		inline int strcasecmp(const char *const str1, const char *const str2) {
+		int strcasecmp(const char *const str1, const char *const str2) {
 			if (!str1) return str2 ? -1 : 0;
 			const int
 				l1 = (int)std::strlen(str1),
@@ -5383,7 +5383,7 @@ namespace cimg_library_suffixed {
 		\param l Max number of characters.
 		\param is_ending Tell if the dots are placed at the end or at the center of the ellipsized string.
 		**/
-		inline char *strellipsize(char *const str, const unsigned int l = 64,
+		char *strellipsize(char *const str, const unsigned int l = 64,
 			const bool is_ending = true) {
 			if (!str) return str;
 			const unsigned int nl = l<5 ? 5 : l, ls = (unsigned int)std::strlen(str);
@@ -5405,7 +5405,7 @@ namespace cimg_library_suffixed {
 		\param l Max number of characters.
 		\param is_ending Tell if the dots are placed at the end or at the center of the ellipsized string.
 		**/
-		inline char *strellipsize(const char *const str, char *const res, const unsigned int l = 64,
+		char *strellipsize(const char *const str, char *const res, const unsigned int l = 64,
 			const bool is_ending = true) {
 			const unsigned int nl = l<5 ? 5 : l, ls = (unsigned int)std::strlen(str);
 			if (ls <= nl) { std::strcpy(res, str); return res; }
@@ -5432,7 +5432,7 @@ namespace cimg_library_suffixed {
 		\param is_iterative Tells if the removal is done if several iterations are possible.
 		\return \c true if delimiters have been removed, \c false otherwise.
 		**/
-		inline bool strpare(char *const str, const char delimiter,
+		bool strpare(char *const str, const char delimiter,
 			const bool is_symmetric, const bool is_iterative) {
 			if (!str) return false;
 			const int l = (int)std::strlen(str);
@@ -5450,7 +5450,7 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Remove white spaces on the start and/or end of a C-string.
-		inline bool strpare(char *const str, const bool is_symmetric, const bool is_iterative) {
+		bool strpare(char *const str, const bool is_symmetric, const bool is_iterative) {
 			if (!str) return false;
 			const int l = (int)std::strlen(str);
 			int p, q;
@@ -5471,7 +5471,7 @@ namespace cimg_library_suffixed {
 		\param[in,out] str C-string to work with (modified at output).
 		\param[in] c Replacement character.
 		**/
-		inline void strwindows_reserved(char *const str, const char c = '_') {
+		void strwindows_reserved(char *const str, const char c = '_') {
 			for (char *s = str; *s; ++s) {
 				const char i = *s;
 				if (i == '<' || i == '>' || i == ':' || i == '\"' || i == '/' || i == '\\' || i == '|' || i == '?' || i == '*') *s = c;
@@ -5482,7 +5482,7 @@ namespace cimg_library_suffixed {
 		/**
 		\param[in,out] str C-string to work with (modified at output).
 		**/
-		inline void strunescape(char *const str) {
+		void strunescape(char *const str) {
 #define cimg_strunescape(ci,co) case ci : *nd = co; ++ns; break;
 			unsigned int val = 0;
 			for (char *ns = str, *nd = str; *ns || (bool)(*nd = 0); ++nd) if (*ns == '\\') switch (*(++ns)) {
@@ -5512,10 +5512,10 @@ namespace cimg_library_suffixed {
 		}
 
 		// Return a temporary string describing the size of a memory buffer.
-		inline const char *strbuffersize(const cimg_ulong size);
+		const char *strbuffersize(const cimg_ulong size);
 
 		// Return string that identifies the running OS.
-		inline const char *stros() {
+		const char *stros() {
 #if defined(linux) || defined(__linux) || defined(__linux__)
 			static const char *const str = "Linux";
 #elif defined(sun) || defined(__sun)
@@ -5541,14 +5541,14 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Return the basename of a filename.
-		inline const char* basename(const char *const s, const char separator = cimg_file_separator) {
+		const char* basename(const char *const s, const char separator = cimg_file_separator) {
 			const char *p = 0, *np = s;
 			while (np >= s && (p = np)) np = std::strchr(np, separator) + 1;
 			return p;
 		}
 
 		// Return a random filename.
-		inline const char* filenamerand() {
+		const char* filenamerand() {
 			cimg::mutex(6);
 			static char randomid[9];
 			cimg::srand();
@@ -5563,7 +5563,7 @@ namespace cimg_library_suffixed {
 		}
 
 		// Convert filename as a Windows-style filename (short path name).
-		inline void winformat_string(char *const str) {
+		void winformat_string(char *const str) {
 			if (str && *str) {
 #if cimg_OS==2
 				char *const nstr = new char[MAX_PATH];
@@ -5574,7 +5574,7 @@ namespace cimg_library_suffixed {
 		}
 
 		// Open a file (with wide character support on Windows).
-		inline std::FILE *win_fopen(const char *const path, const char *const mode);
+		std::FILE *win_fopen(const char *const path, const char *const mode);
 
 		//! Open a file.
 		/**
@@ -5584,7 +5584,7 @@ namespace cimg_library_suffixed {
 		\note Same as <tt>std::fopen()</tt> but throw a \c CImgIOException when
 		the specified file cannot be opened, instead of returning \c 0.
 		**/
-		inline std::FILE *fopen(const char *const path, const char *const mode) {
+		std::FILE *fopen(const char *const path, const char *const mode) {
 			if (!path)
 				throw CImgArgumentException("cimg::fopen(): Specified file path is (null).");
 			if (!mode)
@@ -5616,7 +5616,7 @@ namespace cimg_library_suffixed {
 		\note Same as <tt>std::fclose()</tt> but display a warning message if
 		the file has not been closed properly.
 		**/
-		inline int fclose(std::FILE *file) {
+		int fclose(std::FILE *file) {
 			if (!file) warn("cimg::fclose(): Specified file is (null).");
 			if (!file || file == cimg::_stdin() || file == cimg::_stdout()) return 0;
 			const int errn = std::fclose(file);
@@ -5626,7 +5626,7 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Version of 'fseek()' that supports >=64bits offsets everywhere (for Windows).
-		inline int fseek(FILE *stream, cimg_long offset, int origin) {
+		int fseek(FILE *stream, cimg_long offset, int origin) {
 #if cimg_OS==2
 			return _fseeki64(stream, (__int64)offset, origin);
 #else
@@ -5635,7 +5635,7 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Version of 'ftell()' that supports >=64bits offsets everywhere (for Windows).
-		inline cimg_long ftell(FILE *stream) {
+		cimg_long ftell(FILE *stream) {
 #if cimg_OS==2
 			return (cimg_long)_ftelli64(stream);
 #else
@@ -5647,7 +5647,7 @@ namespace cimg_library_suffixed {
 		/**
 		\param path Specified path to test.
 		**/
-		inline bool is_directory(const char *const path) {
+		bool is_directory(const char *const path) {
 			if (!path || !*path) return false;
 #if cimg_OS==1
 			struct stat st_buf;
@@ -5664,7 +5664,7 @@ namespace cimg_library_suffixed {
 		/**
 		\param path Specified path to test.
 		**/
-		inline bool is_file(const char *const path) {
+		bool is_file(const char *const path) {
 			if (!path || !*path) return false;
 			std::FILE *const file = std_fopen(path, "rb");
 			if (!file) return false;
@@ -5679,7 +5679,7 @@ namespace cimg_library_suffixed {
 		Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
 		\return -1 if requested attribute could not be read.
 		**/
-		inline int fdate(const char *const path, const unsigned int attr) {
+		int fdate(const char *const path, const unsigned int attr) {
 			int res = -1;
 			if (!path || !*path || attr>6) return -1;
 			cimg::mutex(6);
@@ -5711,7 +5711,7 @@ namespace cimg_library_suffixed {
 		\param attr Type of requested time attribute.
 		Can be { 0=year | 1=month | 2=day | 3=day of week | 4=hour | 5=minute | 6=second }
 		**/
-		inline int date(const unsigned int attr) {
+		int date(const unsigned int attr) {
 			int res;
 			cimg::mutex(6);
 #if cimg_OS==2
@@ -5731,45 +5731,45 @@ namespace cimg_library_suffixed {
 		}
 
 		// Get/set path to store temporary files.
-		inline const char* temporary_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char* temporary_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the <i>Program Files/</i> directory (Windows only).
 #if cimg_OS==2
-		inline const char* programfiles_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char* programfiles_path(const char *const user_path = 0, const bool reinit_path = false);
 #endif
 
 		// Get/set path to the ImageMagick's \c convert binary.
-		inline const char* imagemagick_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char* imagemagick_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the GraphicsMagick's \c gm binary.
-		inline const char* graphicsmagick_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char* graphicsmagick_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the XMedcon's \c medcon binary.
-		inline const char* medcon_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char* medcon_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the FFMPEG's \c ffmpeg binary.
-		inline const char *ffmpeg_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char *ffmpeg_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the \c gzip binary.
-		inline const char *gzip_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char *gzip_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the \c gunzip binary.
-		inline const char *gunzip_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char *gunzip_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the \c dcraw binary.
-		inline const char *dcraw_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char *dcraw_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the \c wget binary.
-		inline const char *wget_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char *wget_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		// Get/set path to the \c curl binary.
-		inline const char *curl_path(const char *const user_path = 0, const bool reinit_path = false);
+		const char *curl_path(const char *const user_path = 0, const bool reinit_path = false);
 
 		//! Split filename into two C-strings \c body and \c extension.
 		/**
 		filename and body must not overlap!
 		**/
-		inline const char *split_filename(const char *const filename, char *const body = 0) {
+		const char *split_filename(const char *const filename, char *const body = 0) {
 			if (!filename) { if (body) *body = 0; return 0; }
 			const char *p = 0; for (const char *np = filename; np >= filename && (p = np); np = std::strchr(np, '.') + 1) {}
 			if (p == filename) {
@@ -5782,7 +5782,7 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Generate a numbered version of a filename.
-		inline char* number_filename(const char *const filename, const int number,
+		char* number_filename(const char *const filename, const int number,
 			const unsigned int digits, char *const str) {
 			if (!filename) { if (str) *str = 0; return 0; }
 			char *const format = new char[1024], *const body = new char[1024];
@@ -5803,7 +5803,7 @@ namespace cimg_library_suffixed {
 		\note Same as <tt>std::fread()</tt> but may display warning message if all elements could not be read.
 		**/
 		template<typename T>
-		inline size_t fread(T *const ptr, const size_t nmemb, std::FILE *stream) {
+		size_t fread(T *const ptr, const size_t nmemb, std::FILE *stream) {
 			if (!ptr || !stream)
 				throw CImgArgumentException("cimg::fread(): Invalid reading request of %u %s%s from file %p to buffer %p.",
 					nmemb, cimg::type<T>::string(), nmemb>1 ? "s" : "", stream, ptr);
@@ -5831,7 +5831,7 @@ namespace cimg_library_suffixed {
 		\note Similar to <tt>std::fwrite</tt> but may display warning messages if all elements could not be written.
 		**/
 		template<typename T>
-		inline size_t fwrite(const T *ptr, const size_t nmemb, std::FILE *stream) {
+		size_t fwrite(const T *ptr, const size_t nmemb, std::FILE *stream) {
 			if (!ptr || !stream)
 				throw CImgArgumentException("cimg::fwrite(): Invalid writing request of %u %s%s from buffer %p to file %p.",
 					nmemb, cimg::type<T>::string(), nmemb>1 ? "s" : "", ptr, stream);
@@ -5855,7 +5855,7 @@ namespace cimg_library_suffixed {
 		\param file Input file (can be \c 0 if \c filename is set).
 		\param filename Filename, as a C-string (can be \c 0 if \c file is set).
 		**/
-		inline void fempty(std::FILE *const file, const char *const filename) {
+		void fempty(std::FILE *const file, const char *const filename) {
 			if (!file && !filename)
 				throw CImgArgumentException("cimg::fempty(): Specified filename is (null).");
 			std::FILE *const nfile = file ? file : cimg::fopen(filename, "wb");
@@ -5863,15 +5863,15 @@ namespace cimg_library_suffixed {
 		}
 
 		// Try to guess format from an image file.
-		inline const char *ftype(std::FILE *const file, const char *const filename);
+		const char *ftype(std::FILE *const file, const char *const filename);
 
 		// Load file from network as a local temporary file.
-		inline char *load_network(const char *const url, char *const filename_local,
+		char *load_network(const char *const url, char *const filename_local,
 			const unsigned int timeout = 0, const bool try_fallback = false,
 			const char *const referer = 0);
 
 		//! Return options specified on the command line.
-		inline const char* option(const char *const name, const int argc, const char *const *const argv,
+		const char* option(const char *const name, const int argc, const char *const *const argv,
 			const char *const defaut, const char *const usage, const bool reset_static) {
 			static bool first = true, visu = false;
 			if (reset_static) { first = true; return 0; }
@@ -5904,12 +5904,12 @@ namespace cimg_library_suffixed {
 			return res;
 		}
 
-		inline const char* option(const char *const name, const int argc, const char *const *const argv,
+		const char* option(const char *const name, const int argc, const char *const *const argv,
 			const char *const defaut, const char *const usage = 0) {
 			return option(name, argc, argv, defaut, usage, false);
 		}
 
-		inline bool option(const char *const name, const int argc, const char *const *const argv,
+		bool option(const char *const name, const int argc, const char *const *const argv,
 			const bool defaut, const char *const usage = 0) {
 			const char *const s = cimg::option(name, argc, argv, (char*)0);
 			const bool res = s ? (cimg::strcasecmp(s, "false") && cimg::strcasecmp(s, "off") && cimg::strcasecmp(s, "0")) : defaut;
@@ -5917,7 +5917,7 @@ namespace cimg_library_suffixed {
 			return res;
 		}
 
-		inline int option(const char *const name, const int argc, const char *const *const argv,
+		int option(const char *const name, const int argc, const char *const *const argv,
 			const int defaut, const char *const usage = 0) {
 			const char *const s = cimg::option(name, argc, argv, (char*)0);
 			const int res = s ? std::atoi(s) : defaut;
@@ -5928,7 +5928,7 @@ namespace cimg_library_suffixed {
 			return res;
 		}
 
-		inline char option(const char *const name, const int argc, const char *const *const argv,
+		char option(const char *const name, const int argc, const char *const *const argv,
 			const char defaut, const char *const usage = 0) {
 			const char *const s = cimg::option(name, argc, argv, (char*)0);
 			const char res = s ? *s : defaut;
@@ -5938,7 +5938,7 @@ namespace cimg_library_suffixed {
 			return res;
 		}
 
-		inline float option(const char *const name, const int argc, const char *const *const argv,
+		float option(const char *const name, const int argc, const char *const *const argv,
 			const float defaut, const char *const usage = 0) {
 			const char *const s = cimg::option(name, argc, argv, (char*)0);
 			const float res = s ? (float)cimg::atof(s) : defaut;
@@ -5949,7 +5949,7 @@ namespace cimg_library_suffixed {
 			return res;
 		}
 
-		inline double option(const char *const name, const int argc, const char *const *const argv,
+		double option(const char *const name, const int argc, const char *const *const argv,
 			const double defaut, const char *const usage = 0) {
 			const char *const s = cimg::option(name, argc, argv, (char*)0);
 			const double res = s ? cimg::atof(s) : defaut;
@@ -5964,7 +5964,7 @@ namespace cimg_library_suffixed {
 		/**
 		\note Output is done on the default output stream.
 		**/
-		inline void info() {
+		void info() {
 			std::fprintf(cimg::output(), "\n %s%sCImg Library %u.%u.%u%s, compiled %s ( %s ) with the following flags:\n\n",
 				cimg::t_red, cimg::t_bold, cimg_version / 100, (cimg_version / 10) % 10, cimg_version % 10,
 				cimg::t_normal, cimg_date, cimg_time);
@@ -6135,61 +6135,61 @@ namespace cimg_library_suffixed {
 		// Declare LAPACK function signatures if LAPACK support is enabled.
 #ifdef cimg_use_lapack
 		template<typename T>
-		inline void getrf(int &N, T *lapA, int *IPIV, int &INFO) {
+		void getrf(int &N, T *lapA, int *IPIV, int &INFO) {
 			dgetrf_(&N, &N, lapA, &N, IPIV, &INFO);
 		}
 
-		inline void getrf(int &N, float *lapA, int *IPIV, int &INFO) {
+		void getrf(int &N, float *lapA, int *IPIV, int &INFO) {
 			sgetrf_(&N, &N, lapA, &N, IPIV, &INFO);
 		}
 
 		template<typename T>
-		inline void getri(int &N, T *lapA, int *IPIV, T* WORK, int &LWORK, int &INFO) {
+		void getri(int &N, T *lapA, int *IPIV, T* WORK, int &LWORK, int &INFO) {
 			dgetri_(&N, lapA, &N, IPIV, WORK, &LWORK, &INFO);
 		}
 
-		inline void getri(int &N, float *lapA, int *IPIV, float* WORK, int &LWORK, int &INFO) {
+		void getri(int &N, float *lapA, int *IPIV, float* WORK, int &LWORK, int &INFO) {
 			sgetri_(&N, lapA, &N, IPIV, WORK, &LWORK, &INFO);
 		}
 
 		template<typename T>
-		inline void gesvd(char &JOB, int &M, int &N, T *lapA, int &MN,
+		void gesvd(char &JOB, int &M, int &N, T *lapA, int &MN,
 			T *lapS, T *lapU, T *lapV, T *WORK, int &LWORK, int &INFO) {
 			dgesvd_(&JOB, &JOB, &M, &N, lapA, &MN, lapS, lapU, &M, lapV, &N, WORK, &LWORK, &INFO);
 		}
 
-		inline void gesvd(char &JOB, int &M, int &N, float *lapA, int &MN,
+		void gesvd(char &JOB, int &M, int &N, float *lapA, int &MN,
 			float *lapS, float *lapU, float *lapV, float *WORK, int &LWORK, int &INFO) {
 			sgesvd_(&JOB, &JOB, &M, &N, lapA, &MN, lapS, lapU, &M, lapV, &N, WORK, &LWORK, &INFO);
 		}
 
 		template<typename T>
-		inline void getrs(char &TRANS, int &N, T *lapA, int *IPIV, T *lapB, int &INFO) {
+		void getrs(char &TRANS, int &N, T *lapA, int *IPIV, T *lapB, int &INFO) {
 			int one = 1;
 			dgetrs_(&TRANS, &N, &one, lapA, &N, IPIV, lapB, &N, &INFO);
 		}
 
-		inline void getrs(char &TRANS, int &N, float *lapA, int *IPIV, float *lapB, int &INFO) {
+		void getrs(char &TRANS, int &N, float *lapA, int *IPIV, float *lapB, int &INFO) {
 			int one = 1;
 			sgetrs_(&TRANS, &N, &one, lapA, &N, IPIV, lapB, &N, &INFO);
 		}
 
 		template<typename T>
-		inline void syev(char &JOB, char &UPLO, int &N, T *lapA, T *lapW, T *WORK, int &LWORK, int &INFO) {
+		void syev(char &JOB, char &UPLO, int &N, T *lapA, T *lapW, T *WORK, int &LWORK, int &INFO) {
 			dsyev_(&JOB, &UPLO, &N, lapA, &N, lapW, WORK, &LWORK, &INFO);
 		}
 
-		inline void syev(char &JOB, char &UPLO, int &N, float *lapA, float *lapW, float *WORK, int &LWORK, int &INFO) {
+		void syev(char &JOB, char &UPLO, int &N, float *lapA, float *lapW, float *WORK, int &LWORK, int &INFO) {
 			ssyev_(&JOB, &UPLO, &N, lapA, &N, lapW, WORK, &LWORK, &INFO);
 		}
 
 		template<typename T>
-		inline void sgels(char & TRANS, int &M, int &N, int &NRHS, T* lapA, int &LDA,
+		void sgels(char & TRANS, int &M, int &N, int &NRHS, T* lapA, int &LDA,
 			T* lapB, int &LDB, T* WORK, int &LWORK, int &INFO) {
 			dgels_(&TRANS, &M, &N, &NRHS, lapA, &LDA, lapB, &LDB, WORK, &LWORK, &INFO);
 		}
 
-		inline void sgels(char & TRANS, int &M, int &N, int &NRHS, float* lapA, int &LDA,
+		void sgels(char & TRANS, int &M, int &N, int &NRHS, float* lapA, int &LDA,
 			float* lapB, int &LDB, float* WORK, int &LWORK, int &INFO) {
 			sgels_(&TRANS, &M, &N, &NRHS, lapA, &LDA, lapB, &LDB, WORK, &LWORK, &INFO);
 		}
@@ -6210,40 +6210,40 @@ namespace cimg_library_suffixed {
 
 #define _cimg_create_ext_operators(typ) \
   template<typename T> \
-  inline CImg<typename cimg::superset<T,typ>::type> operator+(const typ val, const CImg<T>& img) { \
+  CImg<typename cimg::superset<T,typ>::type> operator+(const typ val, const CImg<T>& img) { \
     return img + val; \
   } \
   template<typename T> \
-  inline CImg<typename cimg::superset<T,typ>::type> operator-(const typ val, const CImg<T>& img) { \
+  CImg<typename cimg::superset<T,typ>::type> operator-(const typ val, const CImg<T>& img) { \
     typedef typename cimg::superset<T,typ>::type Tt; \
     return CImg<Tt>(img._width,img._height,img._depth,img._spectrum,val)-=img; \
   } \
   template<typename T> \
-  inline CImg<typename cimg::superset<T,typ>::type> operator*(const typ val, const CImg<T>& img) { \
+  CImg<typename cimg::superset<T,typ>::type> operator*(const typ val, const CImg<T>& img) { \
     return img*val; \
   } \
   template<typename T> \
-  inline CImg<typename cimg::superset<T,typ>::type> operator/(const typ val, const CImg<T>& img) { \
+  CImg<typename cimg::superset<T,typ>::type> operator/(const typ val, const CImg<T>& img) { \
     return val*img.get_invert(); \
   } \
   template<typename T> \
-  inline CImg<typename cimg::superset<T,typ>::type> operator&(const typ val, const CImg<T>& img) { \
+  CImg<typename cimg::superset<T,typ>::type> operator&(const typ val, const CImg<T>& img) { \
     return img & val; \
   } \
   template<typename T> \
-  inline CImg<typename cimg::superset<T,typ>::type> operator|(const typ val, const CImg<T>& img) { \
+  CImg<typename cimg::superset<T,typ>::type> operator|(const typ val, const CImg<T>& img) { \
     return img | val; \
   } \
   template<typename T> \
-  inline CImg<typename cimg::superset<T,typ>::type> operator^(const typ val, const CImg<T>& img) { \
+  CImg<typename cimg::superset<T,typ>::type> operator^(const typ val, const CImg<T>& img) { \
     return img ^ val; \
   } \
   template<typename T> \
-  inline bool operator==(const typ val, const CImg<T>& img) {   \
+  bool operator==(const typ val, const CImg<T>& img) {   \
     return img == val; \
   } \
   template<typename T> \
-  inline bool operator!=(const typ val, const CImg<T>& img) { \
+  bool operator!=(const typ val, const CImg<T>& img) { \
     return img != val; \
   }
 
@@ -6262,152 +6262,152 @@ namespace cimg_library_suffixed {
 		_cimg_create_ext_operators(long double)
 
 		template<typename T>
-	inline CImg<_cimg_Tfloat> operator+(const char *const expression, const CImg<T>& img) {
+	CImg<_cimg_Tfloat> operator+(const char *const expression, const CImg<T>& img) {
 		return img + expression;
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> operator-(const char *const expression, const CImg<T>& img) {
+	CImg<_cimg_Tfloat> operator-(const char *const expression, const CImg<T>& img) {
 		return CImg<_cimg_Tfloat>(img, false).fill(expression, true) -= img;
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> operator*(const char *const expression, const CImg<T>& img) {
+	CImg<_cimg_Tfloat> operator*(const char *const expression, const CImg<T>& img) {
 		return img*expression;
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> operator/(const char *const expression, const CImg<T>& img) {
+	CImg<_cimg_Tfloat> operator/(const char *const expression, const CImg<T>& img) {
 		return expression*img.get_invert();
 	}
 
 	template<typename T>
-	inline CImg<T> operator&(const char *const expression, const CImg<T>& img) {
+	CImg<T> operator&(const char *const expression, const CImg<T>& img) {
 		return img & expression;
 	}
 
 	template<typename T>
-	inline CImg<T> operator|(const char *const expression, const CImg<T>& img) {
+	CImg<T> operator|(const char *const expression, const CImg<T>& img) {
 		return img | expression;
 	}
 
 	template<typename T>
-	inline CImg<T> operator^(const char *const expression, const CImg<T>& img) {
+	CImg<T> operator^(const char *const expression, const CImg<T>& img) {
 		return img ^ expression;
 	}
 
 	template<typename T>
-	inline bool operator==(const char *const expression, const CImg<T>& img) {
+	bool operator==(const char *const expression, const CImg<T>& img) {
 		return img == expression;
 	}
 
 	template<typename T>
-	inline bool operator!=(const char *const expression, const CImg<T>& img) {
+	bool operator!=(const char *const expression, const CImg<T>& img) {
 		return img != expression;
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> sqr(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> sqr(const CImg<T>& instance) {
 		return instance.get_sqr();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> sqrt(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> sqrt(const CImg<T>& instance) {
 		return instance.get_sqrt();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> exp(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> exp(const CImg<T>& instance) {
 		return instance.get_exp();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> log(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> log(const CImg<T>& instance) {
 		return instance.get_log();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> log2(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> log2(const CImg<T>& instance) {
 		return instance.get_log2();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> log10(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> log10(const CImg<T>& instance) {
 		return instance.get_log10();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> abs(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> abs(const CImg<T>& instance) {
 		return instance.get_abs();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> sign(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> sign(const CImg<T>& instance) {
 		return instance.get_sign();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> cos(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> cos(const CImg<T>& instance) {
 		return instance.get_cos();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> sin(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> sin(const CImg<T>& instance) {
 		return instance.get_sin();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> sinc(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> sinc(const CImg<T>& instance) {
 		return instance.get_sinc();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> tan(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> tan(const CImg<T>& instance) {
 		return instance.get_tan();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> acos(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> acos(const CImg<T>& instance) {
 		return instance.get_acos();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> asin(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> asin(const CImg<T>& instance) {
 		return instance.get_asin();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> atan(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> atan(const CImg<T>& instance) {
 		return instance.get_atan();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> cosh(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> cosh(const CImg<T>& instance) {
 		return instance.get_cosh();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> sinh(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> sinh(const CImg<T>& instance) {
 		return instance.get_sinh();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> tanh(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> tanh(const CImg<T>& instance) {
 		return instance.get_tanh();
 	}
 
 	template<typename T>
-	inline CImg<T> transpose(const CImg<T>& instance) {
+	CImg<T> transpose(const CImg<T>& instance) {
 		return instance.get_transpose();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> invert(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> invert(const CImg<T>& instance) {
 		return instance.get_invert();
 	}
 
 	template<typename T>
-	inline CImg<_cimg_Tfloat> pseudoinvert(const CImg<T>& instance) {
+	CImg<_cimg_Tfloat> pseudoinvert(const CImg<T>& instance) {
 		return instance.get_pseudoinvert();
 	}
 
@@ -58281,7 +58281,7 @@ namespace cimg_library_suffixed {
 
 		// Functions to return standard streams 'stdin', 'stdout' and 'stderr'.
 		// (throw a CImgIOException when macro 'cimg_use_r' is defined).
-		inline FILE* _stdin() {
+		FILE* _stdin() {
 #ifndef cimg_use_r
 			return stdin;
 #else
@@ -58292,7 +58292,7 @@ namespace cimg_library_suffixed {
 #endif
 		}
 
-		inline FILE* _stdout() {
+		FILE* _stdout() {
 #ifndef cimg_use_r
 			return stdout;
 #else
@@ -58303,7 +58303,7 @@ namespace cimg_library_suffixed {
 #endif
 		}
 
-		inline FILE* _stderr() {
+		FILE* _stderr() {
 #ifndef cimg_use_r
 			return stderr;
 #else
@@ -58315,7 +58315,7 @@ namespace cimg_library_suffixed {
 		}
 
 		// Open a file (with wide character support on Windows).
-		inline std::FILE *win_fopen(const char *const path, const char *const mode) {
+		std::FILE *win_fopen(const char *const path, const char *const mode) {
 #if cimg_OS==2
 			// Convert 'path' to a wide-character string.
 			int err = MultiByteToWideChar(CP_UTF8, 0, path, -1, 0, 0);
@@ -58343,7 +58343,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path where temporary files can be saved.
 		**/
-		inline const char* temporary_path(const char *const user_path, const bool reinit_path) {
+		const char* temporary_path(const char *const user_path, const bool reinit_path) {
 #define _cimg_test_temporary_path(p)                                    \
     if (!path_found) {                                                  \
       cimg_snprintf(s_path,s_path.width(),"%s",p);                      \
@@ -58400,7 +58400,7 @@ namespace cimg_library_suffixed {
 		\return Path containing the program files.
 		**/
 #if cimg_OS==2
-		inline const char* programfiles_path(const char *const user_path, const bool reinit_path) {
+		const char* programfiles_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58433,7 +58433,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c convert binary.
 		**/
-		inline const char* imagemagick_path(const char *const user_path, const bool reinit_path) {
+		const char* imagemagick_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58543,7 +58543,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c gm binary.
 		**/
-		inline const char* graphicsmagick_path(const char *const user_path, const bool reinit_path) {
+		const char* graphicsmagick_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58653,7 +58653,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c medcon binary.
 		**/
-		inline const char* medcon_path(const char *const user_path, const bool reinit_path) {
+		const char* medcon_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58703,7 +58703,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c ffmpeg binary.
 		**/
-		inline const char *ffmpeg_path(const char *const user_path, const bool reinit_path) {
+		const char *ffmpeg_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58740,7 +58740,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c gzip binary.
 		**/
-		inline const char *gzip_path(const char *const user_path, const bool reinit_path) {
+		const char *gzip_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58777,7 +58777,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c gunzip binary.
 		**/
-		inline const char *gunzip_path(const char *const user_path, const bool reinit_path) {
+		const char *gunzip_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58814,7 +58814,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c dcraw binary.
 		**/
-		inline const char *dcraw_path(const char *const user_path, const bool reinit_path) {
+		const char *dcraw_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58851,7 +58851,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c wget binary.
 		**/
-		inline const char *wget_path(const char *const user_path, const bool reinit_path) {
+		const char *wget_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58888,7 +58888,7 @@ namespace cimg_library_suffixed {
 		\param reinit_path Force path to be recalculated (may take some time).
 		\return Path containing the \c curl binary.
 		**/
-		inline const char *curl_path(const char *const user_path, const bool reinit_path) {
+		const char *curl_path(const char *const user_path, const bool reinit_path) {
 			static CImg<char> s_path;
 			cimg::mutex(7);
 			if (reinit_path) s_path.assign();
@@ -58920,7 +58920,7 @@ namespace cimg_library_suffixed {
 		}
 
 		// [internal] Sorting function, used by cimg::files().
-		inline int _sort_files(const void* a, const void* b) {
+		int _sort_files(const void* a, const void* b) {
 			const CImg<char> &sa = *(CImg<char>*)a, &sb = *(CImg<char>*)b;
 			return std::strcmp(sa._data, sb._data);
 		}
@@ -58933,7 +58933,7 @@ namespace cimg_library_suffixed {
 		\param include_path Tell if \c path must be included in resulting filenames.
 		\return A list of filenames.
 		**/
-		inline CImgList<char> files(const char *const path, const bool is_pattern = false,
+		CImgList<char> files(const char *const path, const bool is_pattern = false,
 			const unsigned int mode = 2, const bool include_path = false) {
 			if (!path || !*path) return files("*", true, mode, include_path);
 			CImgList<char> res;
@@ -59052,7 +59052,7 @@ namespace cimg_library_suffixed {
 		\param filename Filename, as a C-string (can be \c 0 if \c file is set).
 		\return C-string containing the guessed file format, or \c 0 if nothing has been guessed.
 		**/
-		inline const char *ftype(std::FILE *const file, const char *const filename) {
+		const char *ftype(std::FILE *const file, const char *const filename) {
 			if (!file && !filename)
 				throw CImgArgumentException("cimg::ftype(): Specified filename is (null).");
 			static const char
@@ -59112,7 +59112,7 @@ namespace cimg_library_suffixed {
 		\return Value of \c filename_local.
 		\note Use the \c libcurl library, or the external binaries \c wget or \c curl to perform the download.
 		**/
-		inline char *load_network(const char *const url, char *const filename_local,
+		char *load_network(const char *const url, char *const filename_local,
 			const unsigned int timeout, const bool try_fallback,
 			const char *const referer) {
 			if (!url)
@@ -59237,7 +59237,7 @@ namespace cimg_library_suffixed {
 		}
 
 		// Implement a tic/toc mechanism to display elapsed time of algorithms.
-		inline cimg_ulong tictoc(const bool is_tic) {
+		cimg_ulong tictoc(const bool is_tic) {
 			cimg::mutex(2);
 			static CImg<cimg_ulong> times(64);
 			static unsigned int pos = 0;
@@ -59288,7 +59288,7 @@ namespace cimg_library_suffixed {
 		}
 
 		// Return a temporary string describing the size of a memory buffer.
-		inline const char *strbuffersize(const cimg_ulong size) {
+		const char *strbuffersize(const cimg_ulong size) {
 			static CImg<char> res(256);
 			cimg::mutex(5);
 			if (size<1024LU) cimg_snprintf(res, res._width, "%lu byte%s", (unsigned long)size, size>1 ? "s" : "");
@@ -59321,7 +59321,7 @@ namespace cimg_library_suffixed {
 		At least one button must be specified.
 		**/
 		template<typename t>
-		inline int dialog(const char *const title, const char *const msg,
+		int dialog(const char *const title, const char *const msg,
 			const char *const button1_label, const char *const button2_label,
 			const char *const button3_label, const char *const button4_label,
 			const char *const button5_label, const char *const button6_label,
@@ -59483,7 +59483,7 @@ namespace cimg_library_suffixed {
 		}
 
 		//! Display a simple dialog box, and wait for the user's response \specialization.
-		inline int dialog(const char *const title, const char *const msg,
+		int dialog(const char *const title, const char *const msg,
 			const char *const button1_label, const char *const button2_label, const char *const button3_label,
 			const char *const button4_label, const char *const button5_label, const char *const button6_label,
 			const bool is_centered) {
@@ -59507,13 +59507,13 @@ namespace cimg_library_suffixed {
 		res2 = cimg::eval(0,1,1);                    // will return '1' too.
 		\endcode
 		**/
-		inline double eval(const char *const expression, const double x, const double y, const double z, const double c) {
+		double eval(const char *const expression, const double x, const double y, const double z, const double c) {
 			static const CImg<float> empty;
 			return empty.eval(expression, x, y, z, c);
 		}
 
 		template<typename t>
-		inline CImg<typename cimg::superset<double, t>::type> eval(const char *const expression, const CImg<t>& xyzc) {
+		CImg<typename cimg::superset<double, t>::type> eval(const char *const expression, const CImg<t>& xyzc) {
 			static const CImg<float> empty;
 			return empty.eval(expression, xyzc);
 		}
