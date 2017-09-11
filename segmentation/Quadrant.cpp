@@ -1,6 +1,6 @@
 #include "Quadrant.h"
 
-Quadrant::Quadrant(CImg<unsigned char> in_img, const Quadrant * in_parent, int in_x0, int in_y0) :
+Quadrant::Quadrant(Mat_<unsigned char> in_img, const Quadrant * in_parent, int in_x0, int in_y0) :
 	img(in_img),
 	parent(in_parent),
 	x0(in_x0), y0(in_y0)
@@ -175,7 +175,7 @@ const Quadrant * Quadrant::get_bottom_child(stack<bool>& horizontal_moves) const
 	return this;
 }
 
-//finds all child nodes toching the right edge  
+//finds all child nodes touching the right edge  
 void Quadrant::get_right_children(vector<const Quadrant*>& results) const
 {
 	if (isLeaf())
@@ -186,7 +186,7 @@ void Quadrant::get_right_children(vector<const Quadrant*>& results) const
 		Qs[1][1]->get_right_children(results);
 	}
 }
-//finds all child nodes toching the bottom edge 
+//finds all child nodes touching the bottom edge 
 void Quadrant::get_bottom_children(vector<const Quadrant*>& results) const
 {
 	if (isLeaf())

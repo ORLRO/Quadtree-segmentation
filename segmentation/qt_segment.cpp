@@ -1,6 +1,10 @@
 #include "qt_segment.h"
 
-qt_segment::qt_segment(CImg<unsigned char>& in_image, bool(*in_homogeneous)(const CImg<unsigned char>&), bool(*in_similar)(const CImg<unsigned char>&, const CImg<unsigned char>&)) :
+using namespace cv;
+
+qt_segment::qt_segment(Mat_<unsigned char>& in_image, 
+	bool(*in_homogeneous)(const Mat_<unsigned char>&), 
+	bool(*in_similar)(const Mat_<unsigned char>&,const Mat_<unsigned char>&)) :
 	image(in_image),
 	homogeneous(in_homogeneous),
 	similar(in_similar)
@@ -22,13 +26,13 @@ qt_segment::~qt_segment()
 	}
 }
 
-CImg<unsigned char> qt_segment::get_marked_split()
+Mat_<unsigned char> qt_segment::get_marked_split()
 {
-	if (root == NULL) return CImg<unsigned char>();
+	if (root == NULL) return Mat_<unsigned char>();
 	// copy image 
-	CImg<unsigned char> marked = image;
-	const unsigned char color[] = { 128,128,128 };
-	const unsigned char blk[] = { 0,0,0 };
+	Mat_<unsigned char> marked = image;
+	Scalar color(128, 128, 128);
+	Scalar blk(0, 0, 0);
 	std::queue <Quadrant*> Q;
 	Q.push(root);
 	//while there is at least one discovered node
@@ -37,17 +41,17 @@ CImg<unsigned char> qt_segment::get_marked_split()
 		Quadrant* current = Q.front();
 		int ix0 = current->x0;
 		int iy0 = current->y0;
-		int iL = current->img.width();
+		int iL = current->img.cols;
 
 
 		Q.pop(); // removing the element at front
 		if (!current->isLeaf())
 		{
 			//draw split lines
-			marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL, color); //vertical
-			marked.draw_line(ix0, iy0 + iL / 2, ix0 + iL, iy0 + iL / 2, color); //horizontal
-
-																				//add children to Q
+			line(marked, Point(ix0 + iL / 2, iy0), Point(ix0 + iL / 2, iy0 + iL), color); //vertical
+			line(marked, Point(ix0, iy0 + iL / 2), Point(ix0 + iL, iy0 + iL / 2), color); //horizontal
+			
+			//add children to Q
 			Q.push(current->Qs[0][0]);
 			Q.push(current->Qs[0][1]);
 			Q.push(current->Qs[1][0]);
@@ -57,48 +61,49 @@ CImg<unsigned char> qt_segment::get_marked_split()
 		{
 			//draw [i]nner split lines
 			if (current->siLabel[0][0] != current->siLabel[0][1])
-				marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL / 2, color);
+				line(marked, Point(ix0 + iL / 2, iy0), Point(ix0 + iL / 2, iy0 + iL / 2), color);
 			if (current->siLabel[1][0] != current->siLabel[1][1])
-				marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL, color);
+				line(marked, Point(ix0 + iL / 2, iy0 + iL / 2), Point(ix0 + iL / 2, iy0 + iL), color);
 
 			if (current->siLabel[0][0] != current->siLabel[1][0])
-				marked.draw_line(ix0, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL / 2, color);
+				line(marked, Point(ix0, iy0 + iL / 2), Point(ix0 + iL / 2, iy0 + iL / 2), color);
 			if (current->siLabel[0][1] != current->siLabel[1][1])
-				marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL, iy0 + iL / 2, color);
+				line(marked, Point(ix0 + iL / 2, iy0 + iL / 2), Point(ix0 + iL, iy0 + iL / 2), color);
 
 			//draw [o]uter [v]ertical similarity split lines (horizontal lines)
 			if (!current->svoLabel[0][0])
-				marked.draw_line(ix0, iy0, ix0 + iL, iy0, color);
+				line(marked, Point(ix0, iy0), Point(ix0 + iL, iy0), color);
 			if (!current->svoLabel[0][1])
-				marked.draw_line(ix0 + iL, iy0, ix0 + iL, iy0, color);
+				line(marked, Point(ix0 + iL, iy0), Point(ix0 + iL, iy0), color);
 
 			if (!current->svoLabel[1][0])
-				marked.draw_line(ix0, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				line(marked, Point(ix0, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
 			if (!current->svoLabel[1][1])
-				marked.draw_line(ix0 + iL, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
 			//draw [o]uter [h]orizontal similarity split lines (vertical lines)
 			if (!current->shoLabel[0][0])
-				marked.draw_line(ix0, iy0, ix0, iy0 + iL, color);
+				line(marked, Point(ix0, iy0), Point(ix0, iy0 + iL), color);
 			if (!current->shoLabel[0][1])
-				marked.draw_line(ix0 + iL, iy0, ix0 + iL, iy0 + iL, color);
+				line(marked, Point(ix0 + iL, iy0), Point(ix0 + iL, iy0 + iL), color);
 
 			if (!current->shoLabel[1][0])
-				marked.draw_line(ix0, iy0 + iL, ix0, iy0 + iL, color);
+				line(marked, Point(ix0, iy0 + iL), Point(ix0, iy0 + iL), color);
 			if (!current->shoLabel[1][1])
-				marked.draw_line(ix0 + iL, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
 
 		}
 
 	}
 	return marked;
 }
-CImg<unsigned char> qt_segment::get_marked_split_merged()
+Mat_<unsigned char> qt_segment::get_marked_split_merged()
 {
-	if (root == NULL) return CImg<unsigned char>();
+	if (root == NULL) return Mat_<unsigned char>();
 	// copy image 
-	CImg<unsigned char> marked = CImg<unsigned char>(512, 512, 1, 1, 0);
-	const unsigned char color[] = { 128,128,128 };
-	const unsigned char blk[] = { 0,0,0 };
+	const uchar defaultVal = 0;
+	Mat_<unsigned char> marked = Mat_<unsigned char>(512, 512, defaultVal);
+	Scalar color(128, 128, 128);
+	Scalar blk(0, 0, 0);
 	std::queue <Quadrant*> Q;
 	Q.push(root);
 	//while there is at least one discovered node
@@ -109,7 +114,7 @@ CImg<unsigned char> qt_segment::get_marked_split_merged()
 
 		int ix0 = current->x0;
 		int iy0 = current->y0;
-		int iL = current->img.width();
+		int iL = current->img.cols;
 
 		if (!current->isLeaf())//not leaf
 		{
@@ -122,34 +127,34 @@ CImg<unsigned char> qt_segment::get_marked_split_merged()
 		{
 			//draw [i]nner split lines
 			if (current->siLabel[0][0] != current->siLabel[0][1])
-				marked.draw_line(ix0 + iL / 2, iy0, ix0 + iL / 2, iy0 + iL / 2, color);
+				line(marked, Point(ix0 + iL / 2, iy0), Point(ix0 + iL / 2, iy0 + iL / 2), color);
 			if (current->siLabel[1][0] != current->siLabel[1][1])
-				marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL, color);
+				line(marked, Point(ix0 + iL / 2, iy0 + iL / 2), Point(ix0 + iL / 2, iy0 + iL), color);
 
 			if (current->siLabel[0][0] != current->siLabel[1][0])
-				marked.draw_line(ix0, iy0 + iL / 2, ix0 + iL / 2, iy0 + iL / 2, color);
+				line(marked, Point(ix0, iy0 + iL / 2), Point(ix0 + iL / 2, iy0 + iL / 2), color);
 			if (current->siLabel[0][1] != current->siLabel[1][1])
-				marked.draw_line(ix0 + iL / 2, iy0 + iL / 2, ix0 + iL, iy0 + iL / 2, color);
+				line(marked, Point(ix0 + iL / 2, iy0 + iL / 2), Point(ix0 + iL, iy0 + iL / 2), color);
 			//draw [o]uter [v]ertical similarity split lines (horizontal lines)
 			if (!current->svoLabel[0][0])
-				marked.draw_line(ix0, iy0, ix0 + iL, iy0, color);
+				line(marked, Point(ix0, iy0), Point(ix0 + iL, iy0), color);
 			if (!current->svoLabel[0][1])
-				marked.draw_line(ix0 + iL, iy0, ix0 + iL, iy0, color);
+				line(marked, Point(ix0 + iL, iy0), Point(ix0 + iL, iy0), color);
 
 			if (!current->svoLabel[1][0])
-				marked.draw_line(ix0, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				line(marked, Point(ix0, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
 			if (!current->svoLabel[1][1])
-				marked.draw_line(ix0 + iL, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
 			//draw [o]uter [h]orizontal similarity split lines (vertical lines)
 			if (!current->shoLabel[0][0])
-				marked.draw_line(ix0, iy0, ix0, iy0 + iL, color);
+				line(marked, Point(ix0, iy0), Point(ix0, iy0 + iL), color);
 			if (!current->shoLabel[0][1])
-				marked.draw_line(ix0 + iL, iy0, ix0 + iL, iy0 + iL, color);
+				line(marked, Point(ix0 + iL, iy0), Point(ix0 + iL, iy0 + iL), color);
 
 			if (!current->shoLabel[1][0])
-				marked.draw_line(ix0, iy0 + iL, ix0, iy0 + iL, color);
+				line(marked, Point(ix0, iy0 + iL), Point(ix0, iy0 + iL), color);
 			if (!current->shoLabel[1][1])
-				marked.draw_line(ix0 + iL, iy0 + iL, ix0 + iL, iy0 + iL, color);
+				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
 		}
 
 	}
@@ -271,12 +276,12 @@ void qt_segment::merge_quadrant_outside(Quadrant * q)
 
 void qt_segment::split_merge(Quadrant * q)
 {
-	//if not homogeneious -> split
+	//if not homogeneous -> split
 	if (!homogeneous(q->img))
 	{
 		int ix0 = q->x0;
 		int iy0 = q->y0;
-		int iL = q->img.width();
+		int iL = q->img.cols;
 
 		//top-left
 		q->Qs[0][0] = new Quadrant(q->img.get_crop(0, 0, iL / 2 - 1, iL / 2 - 1), q, ix0, iy0);
@@ -287,7 +292,7 @@ void qt_segment::split_merge(Quadrant * q)
 		//bottom-right
 		q->Qs[1][1] = new Quadrant(q->img.get_crop(iL / 2, iL / 2, iL - 1, iL - 1), q, ix0 + iL / 2, iy0 + iL / 2);
 
-		merge_quadrant_inside(q); //merges only the current quadrant beeing split
+		merge_quadrant_inside(q); //merges only the current quadrant being split
 
 		split_merge(q->Qs[0][0]);
 		split_merge(q->Qs[0][1]);
@@ -298,7 +303,7 @@ void qt_segment::split_merge(Quadrant * q)
 }
 void qt_segment::split(Quadrant * q)
 {
-	//if not homogeneious -> split
+	//if not homogeneous -> split
 	if (!homogeneous(q->img))
 	{
 		int ix0 = q->x0;

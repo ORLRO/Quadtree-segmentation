@@ -29,9 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CImg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="qt_segment.h">
       <Filter>Header Files</Filter>
     </ClInclude>

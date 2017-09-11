@@ -1,6 +1,10 @@
 #define cimg_use_png
 
-#include "CImg.h"
+//#include "CImg.h"
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
 #include "qt_segment.h"
 #include <iostream>
 
@@ -9,52 +13,75 @@
 // define + operator
 
 using namespace std;
-using namespace cimg_library;
+using namespace cv;
 
 unsigned char threshold = 90;//must be global (-_-) TODO: deal with it
-					//OR hard coded in the function (un-controlable)
-bool similar(const CImg<unsigned char>& A, const CImg<unsigned char>& B)
+					//OR hard coded in the function (un-controllable)
+bool similar(const Mat_<unsigned char>& A, const Mat_<unsigned char>& B)
 {
-	return (std::max(A.max(), B.max()) - std::min(A.min(), B.min())) < threshold;
+	double* Amx, *Amn, *Bmx, *Bmn;
+	minMaxLoc(A, Amx, Amn, NULL, NULL);
+	minMaxLoc(B, Bmx, Bmn, NULL, NULL);
+	return (std::max(*Amx, *Bmx) - std::min(*Amn, *Bmn)) < threshold;
 }
-bool homogeneous(const CImg<unsigned char>& A)
+bool homogeneous(const Mat_<unsigned char>& A)
 {
-	return A.max()- A.min() < threshold;
+	double* mx, *mn;
+	minMaxLoc(A, mx, mn, NULL, NULL);
+	return mx - mn < threshold;
 }
 
-int main() {
-	CImg<unsigned char> image("cropped-dfmm-tomato2.bmp");
-
-	image.RGBtoYCbCr().channel(0); //convert to greyscale
-
-	qt_segment* QT = new qt_segment(image,  homogeneous, similar );
-
-	CImg<unsigned char>marked = QT->get_marked_split();
-	CImg<unsigned char>marked2 = QT->get_marked_split_merged();
-	CImgDisplay main_disp(marked, "Display");
-	CImgDisplay main_disp2(marked2, "Display2");
-	cout << (int)threshold << endl;
-	while (!main_disp.is_closed() && !main_disp2.is_closed())
+int main(int argc, char** argv)
+{
+	String imageName("cropped-dfmm-tomato2.bmp"); // by default
+	if (argc > 1)
 	{
-		main_disp.wait();
-		if (main_disp.is_keyARROWDOWN() && threshold > 5)
+		imageName = argv[1];
+	}
+	Mat_<unsigned char> image;
+	image = imread(imageName, IMREAD_GRAYSCALE); // Read the file
+
+	if (image.empty())                      // Check for invalid input
+	{
+		cout << "Could not open or find the image" << std::endl;
+		return -1;
+	}
+
+	//define 2 display windows
+	namedWindow("Main window", WINDOW_AUTOSIZE); // Create a window for display.
+	namedWindow("Segment window", WINDOW_AUTOSIZE);  // Show our image inside it.
+
+	// initial segmentation
+	qt_segment* QT = new qt_segment(image,  homogeneous, similar );
+	Mat_<unsigned char>marked = QT->get_marked_split();
+	Mat_<unsigned char>marked2 = QT->get_marked_split_merged();
+	imshow("Main window", marked);
+	imshow("Segment window", marked2);
+	cout << (int)threshold << endl;
+	
+	char c = 0; //capture key input
+	do
+	{
+		c = cvWaitKey(100);
+		if (c == 31 && threshold > 5) //30: up arrow
 		{
 			delete QT;
 			threshold -= 5;
 			QT = new qt_segment(image, homogeneous, similar);
-			main_disp.display(QT->get_marked_split());
-			main_disp2.display(QT->get_marked_split_merged());
+			imshow("Main window", QT->get_marked_split());
+			imshow("Segment window", QT->get_marked_split_merged());
+
 			cout << (int)threshold << endl;
 		}
-		if (main_disp.is_keyARROWUP() && threshold < 255)
+		if (c == 30 && threshold < 255) //31: down arrow
 		{
 			delete QT;
 			threshold += 5;
 			QT = new qt_segment(image, homogeneous, similar);
-			main_disp.display(QT->get_marked_split());
-			main_disp2.display(QT->get_marked_split_merged());
+			imshow("Main window", QT->get_marked_split());
+			imshow("Segment window", QT->get_marked_split_merged());
 			cout << (int)threshold << endl;
 		}		
-	}
+	} while (c != 27);
 	return 0;
 }

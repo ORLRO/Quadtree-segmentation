@@ -1,16 +1,17 @@
 #pragma once
 
-#include "CImg.h"
+#include <opencv2/core.hpp>
 #include "Label.h"
 #include <stack> 
 #include <vector>
-using namespace cimg_library;
+
+using namespace cv;
 using namespace std;
 
 class Quadrant
 {
 public:
-	Quadrant(CImg<unsigned char> in_img, const Quadrant* in_parent, 
+	Quadrant(Mat_<unsigned char> in_img, const Quadrant* in_parent, 
 		int in_x0, int in_y0);
 	~Quadrant();
 private:
@@ -29,9 +30,9 @@ private:
 	const Quadrant* get_top_child(stack<bool>& horizontal_moves) const;
 	const Quadrant* get_bottom_child(stack<bool>& horizontal_moves) const;
 
-	//finds all child nodes toching the right edge  
+	//finds all child nodes touching the right edge  
 	void get_right_children(vector<const Quadrant*>& results) const;
-	//finds all child nodes toching the bottom edge 
+	//finds all child nodes touching the bottom edge 
 	void get_bottom_children(vector<const Quadrant*>& results) const;
 public:
 	vector<const Quadrant*> get_left_adjacencies()const;
@@ -61,8 +62,8 @@ public:
 	bool svoLabel[2][2]; // is quadrant [s]imilar to its [v]ertical [o]uter neighbor 
 	bool shoLabel[2][2]; // is quadrant [s]imilar to its [h]orizontal [o]uter neighbor 
 
-	int x0, y0; // top left pixel coordinates in the origenal image
-	CImg<unsigned char> img;// portion of the image in this quadrant
-	Label label; //for connected components lableing - CCL
+	int x0, y0; // top left pixel coordinates in the original image
+	Mat_<unsigned char> img;// portion of the image in this quadrant
+	Label label; //for connected components labeling - CCL
 };
 

@@ -151,7 +151,6 @@
     <ClCompile Include="Quadrant.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CImg.h" />
     <ClInclude Include="Label.h" />
     <ClInclude Include="qt_segment.h" />
     <ClInclude Include="Quadrant.h" />

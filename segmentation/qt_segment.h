@@ -3,6 +3,8 @@
 #include "Quadrant.h"
 #include "Label.h"
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 #include <queue>
 #include <algorithm>
 #include <string>
@@ -14,12 +16,12 @@ using namespace std;
 class qt_segment
 {	
 public:
-	qt_segment(CImg<unsigned char>& in_image, 
-		bool(*in_homogeneous)(const CImg<unsigned char>&),
-		bool(*in_similar)(const CImg<unsigned char>&, const CImg<unsigned char>&));
+	qt_segment(Mat_<unsigned char>& in_image, 
+		bool(*in_homogeneous)(const Mat_<unsigned char>&),
+		bool(*in_similar)(const Mat_<unsigned char>&, const Mat_<unsigned char>&));
 	~qt_segment();
-	CImg<unsigned char> get_marked_split();
-	CImg<unsigned char> get_marked_split_merged();
+	Mat_<unsigned char> get_marked_split();
+	Mat_<unsigned char> get_marked_split_merged();
 private:	
 	void label(Quadrant* q);
 	void merge(Quadrant* q);
@@ -29,13 +31,13 @@ private:
 	void split(Quadrant* q);
 private:
 	Quadrant* root;
-	CImg<unsigned char>& image;
+	Mat_<unsigned char>& image;
 	unsigned char threshold;
 	
 	//function to calculate the homogeneity of Image
-	bool(*homogeneous)(const CImg<unsigned char>&); 
+	bool(*homogeneous)(const Mat_<unsigned char>&);
 	//function to calculate the similarity between 2 Images
-	bool(*similar)(const CImg<unsigned char>&, const CImg<unsigned char>&);
+	bool(*similar)(const Mat_<unsigned char>&, const Mat_<unsigned char>&);
 };
 
 
