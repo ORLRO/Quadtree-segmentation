@@ -12,11 +12,11 @@ qt_segment::qt_segment(Mat_<unsigned char>& in_image,
 	//TODO: assume image size is power of 2 (what if not)
 	root = new Quadrant(image, NULL, 0, 0);
 	//split on creation
-	cimg::tic();
+	//cimg::tic();
 	//split_merge(root);
 
 	split(root); merge(root);
-	cimg::toc();
+	//cimg::toc();
 }
 qt_segment::~qt_segment()
 {
@@ -284,14 +284,13 @@ void qt_segment::split_merge(Quadrant * q)
 		int iL = q->img.cols;
 
 		//top-left
-		q->Qs[0][0] = new Quadrant(q->img.get_crop(0, 0, iL / 2 - 1, iL / 2 - 1), q, ix0, iy0);
+		q->Qs[0][0] = new Quadrant(q->img(Rect(0, 0, iL / 2 - 1, iL / 2 - 1)), q, ix0, iy0);
 		//top-right
-		q->Qs[0][1] = new Quadrant(q->img.get_crop(iL / 2, 0, iL - 1, iL / 2 - 1), q, ix0 + iL / 2, iy0);
+		q->Qs[0][1] = new Quadrant(q->img(Rect(iL / 2, 0, iL - 1, iL / 2 - 1)), q, ix0 + iL / 2, iy0);
 		//bottom-left
-		q->Qs[1][0] = new Quadrant(q->img.get_crop(0, iL / 2, iL / 2 - 1, iL - 1), q, ix0, iy0 + iL / 2);
+		q->Qs[1][0] = new Quadrant(q->img(Rect(0, iL / 2, iL / 2 - 1, iL - 1)), q, ix0, iy0 + iL / 2);
 		//bottom-right
-		q->Qs[1][1] = new Quadrant(q->img.get_crop(iL / 2, iL / 2, iL - 1, iL - 1), q, ix0 + iL / 2, iy0 + iL / 2);
-
+		q->Qs[1][1] = new Quadrant(q->img(Rect(iL / 2, iL / 2, iL - 1, iL - 1)), q, ix0 + iL / 2, iy0 + iL / 2);
 		merge_quadrant_inside(q); //merges only the current quadrant being split
 
 		split_merge(q->Qs[0][0]);
@@ -308,18 +307,18 @@ void qt_segment::split(Quadrant * q)
 	{
 		int ix0 = q->x0;
 		int iy0 = q->y0;
-		int iL = q->img.width();
+		int iL = q->img.cols;
 		//top-left
-		q->Qs[0][0] = new Quadrant(q->img.get_crop(0, 0, iL / 2 - 1, iL / 2 - 1), q, ix0, iy0);
+		q->Qs[0][0] = new Quadrant(q->img(Rect(0, 0, iL / 2 - 1, iL / 2 - 1)), q, ix0, iy0);
 		split(q->Qs[0][0]);
 		//top-right
-		q->Qs[0][1] = new Quadrant(q->img.get_crop(iL / 2, 0, iL - 1, iL / 2 - 1), q, ix0 + iL / 2, iy0);
+		q->Qs[0][1] = new Quadrant(q->img(Rect(iL / 2, 0, iL - 1, iL / 2 - 1)), q, ix0 + iL / 2, iy0);
 		split(q->Qs[0][1]);
 		//bottom-left
-		q->Qs[1][0] = new Quadrant(q->img.get_crop(0, iL / 2, iL / 2 - 1, iL - 1), q, ix0, iy0 + iL / 2);
+		q->Qs[1][0] = new Quadrant(q->img(Rect(0, iL / 2, iL / 2 - 1, iL - 1)), q, ix0, iy0 + iL / 2);
 		split(q->Qs[1][0]);
 		//bottom-right
-		q->Qs[1][1] = new Quadrant(q->img.get_crop(iL / 2, iL / 2, iL - 1, iL - 1), q, ix0 + iL / 2, iy0 + iL / 2);
+		q->Qs[1][1] = new Quadrant(q->img(Rect(iL / 2, iL / 2, iL - 1, iL - 1)), q, ix0 + iL / 2, iy0 + iL / 2);
 		split(q->Qs[1][1]);
 	}
 

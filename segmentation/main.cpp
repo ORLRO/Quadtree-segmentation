@@ -15,20 +15,20 @@
 using namespace std;
 using namespace cv;
 
-unsigned char threshold = 90;//must be global (-_-) TODO: deal with it
+unsigned char threshold2 = 90;//must be global (-_-) TODO: deal with it
 					//OR hard coded in the function (un-controllable)
 bool similar(const Mat_<unsigned char>& A, const Mat_<unsigned char>& B)
 {
-	double* Amx, *Amn, *Bmx, *Bmn;
+	double *Amx = nullptr, *Amn = nullptr, *Bmx = nullptr, *Bmn = nullptr;
 	minMaxLoc(A, Amx, Amn, NULL, NULL);
 	minMaxLoc(B, Bmx, Bmn, NULL, NULL);
-	return (std::max(*Amx, *Bmx) - std::min(*Amn, *Bmn)) < threshold;
+	return (std::max(*Amx, *Bmx) - std::min(*Amn, *Bmn)) < threshold2;
 }
 bool homogeneous(const Mat_<unsigned char>& A)
 {
-	double* mx, *mn;
+	double *mx = nullptr, *mn = nullptr;
 	minMaxLoc(A, mx, mn, NULL, NULL);
-	return mx - mn < threshold;
+	return mx - mn < threshold2;
 }
 
 int main(int argc, char** argv)
@@ -57,30 +57,30 @@ int main(int argc, char** argv)
 	Mat_<unsigned char>marked2 = QT->get_marked_split_merged();
 	imshow("Main window", marked);
 	imshow("Segment window", marked2);
-	cout << (int)threshold << endl;
+	cout << (int)threshold2 << endl;
 	
 	char c = 0; //capture key input
 	do
 	{
-		c = cvWaitKey(100);
-		if (c == 31 && threshold > 5) //30: up arrow
+		c = cvWaitKey(-1);
+		if (c == 's' && threshold2 > 5) 
 		{
 			delete QT;
-			threshold -= 5;
+			threshold2 -= 5;
 			QT = new qt_segment(image, homogeneous, similar);
 			imshow("Main window", QT->get_marked_split());
 			imshow("Segment window", QT->get_marked_split_merged());
 
-			cout << (int)threshold << endl;
+			cout << (int)threshold2 << endl;
 		}
-		if (c == 30 && threshold < 255) //31: down arrow
+		if (c == 'w' && threshold2 < 255) 
 		{
 			delete QT;
-			threshold += 5;
+			threshold2 += 5;
 			QT = new qt_segment(image, homogeneous, similar);
 			imshow("Main window", QT->get_marked_split());
 			imshow("Segment window", QT->get_marked_split_merged());
-			cout << (int)threshold << endl;
+			cout << (int)threshold2 << endl;
 		}		
 	} while (c != 27);
 	return 0;
