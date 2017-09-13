@@ -100,8 +100,7 @@ Mat_<unsigned char> qt_segment::get_marked_split_merged()
 {
 	if (root == NULL) return Mat_<unsigned char>();
 	// copy image 
-	const uchar defaultVal = 0;
-	Mat_<unsigned char> marked = Mat_<unsigned char>(512, 512, defaultVal);
+	Mat_<unsigned char> marked = Mat::zeros(512, 512, CV_8UC1);
 	Scalar color(128, 128, 128);
 	Scalar blk(0, 0, 0);
 	std::queue <Quadrant*> Q;
@@ -276,6 +275,9 @@ void qt_segment::merge_quadrant_outside(Quadrant * q)
 
 void qt_segment::split_merge(Quadrant * q)
 {
+	//double *mx = nullptr, *mn = nullptr;
+	//minMaxLoc(q->img, mx, mn, NULL, NULL);
+	//return mx - mn < 90;
 	//if not homogeneous -> split
 	if (!homogeneous(q->img))
 	{
@@ -309,16 +311,16 @@ void qt_segment::split(Quadrant * q)
 		int iy0 = q->y0;
 		int iL = q->img.cols;
 		//top-left
-		q->Qs[0][0] = new Quadrant(q->img(Rect(0, 0, iL / 2 - 1, iL / 2 - 1)), q, ix0, iy0);
+		q->Qs[0][0] = new Quadrant(q->img(Rect(0, 0, iL/2, iL / 2)), q, ix0, iy0);
 		split(q->Qs[0][0]);
 		//top-right
-		q->Qs[0][1] = new Quadrant(q->img(Rect(iL / 2, 0, iL - 1, iL / 2 - 1)), q, ix0 + iL / 2, iy0);
+		q->Qs[0][1] = new Quadrant(q->img(Rect(iL / 2, 0, iL / 2, iL / 2)), q, ix0 + iL / 2, iy0);
 		split(q->Qs[0][1]);
 		//bottom-left
-		q->Qs[1][0] = new Quadrant(q->img(Rect(0, iL / 2, iL / 2 - 1, iL - 1)), q, ix0, iy0 + iL / 2);
+		q->Qs[1][0] = new Quadrant(q->img(Rect(0, iL / 2, iL / 2, iL / 2)), q, ix0, iy0 + iL / 2);
 		split(q->Qs[1][0]);
 		//bottom-right
-		q->Qs[1][1] = new Quadrant(q->img(Rect(iL / 2, iL / 2, iL - 1, iL - 1)), q, ix0 + iL / 2, iy0 + iL / 2);
+		q->Qs[1][1] = new Quadrant(q->img(Rect(iL / 2, iL / 2, iL/ 2, iL/ 2)), q, ix0 + iL / 2, iy0 + iL / 2);
 		split(q->Qs[1][1]);
 	}
 

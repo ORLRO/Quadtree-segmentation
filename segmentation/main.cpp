@@ -19,15 +19,15 @@ unsigned char threshold2 = 90;//must be global (-_-) TODO: deal with it
 					//OR hard coded in the function (un-controllable)
 bool similar(const Mat_<unsigned char>& A, const Mat_<unsigned char>& B)
 {
-	double *Amx = nullptr, *Amn = nullptr, *Bmx = nullptr, *Bmn = nullptr;
-	minMaxLoc(A, Amx, Amn, NULL, NULL);
-	minMaxLoc(B, Bmx, Bmn, NULL, NULL);
-	return (std::max(*Amx, *Bmx) - std::min(*Amn, *Bmn)) < threshold2;
+	double Amx, Amn, Bmx, Bmn;
+	minMaxLoc(A, &Amn, &Amx, NULL, NULL);
+	minMaxLoc(B, &Bmn, &Bmx, NULL, NULL);
+	return (std::max(Amx, Bmx) - std::min(Amn, Bmn)) < threshold2;
 }
 bool homogeneous(const Mat_<unsigned char>& A)
 {
-	double *mx = nullptr, *mn = nullptr;
-	minMaxLoc(A, mx, mn, NULL, NULL);
+	double mx, mn;
+	minMaxLoc(A, &mn, &mx, NULL, NULL);
 	return mx - mn < threshold2;
 }
 
