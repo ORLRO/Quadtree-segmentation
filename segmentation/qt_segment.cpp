@@ -2,10 +2,10 @@
 
 using namespace cv;
 
-qt_segment::qt_segment(Mat_<unsigned char>& in_image, 
+qt_segment::qt_segment(const Mat_<unsigned char>& in_image, 
 	bool(*in_homogeneous)(const Mat_<unsigned char>&), 
 	bool(*in_similar)(const Mat_<unsigned char>&,const Mat_<unsigned char>&)) :
-	image(in_image),
+	image(in_image.clone()),
 	homogeneous(in_homogeneous),
 	similar(in_similar)
 {
@@ -30,7 +30,7 @@ Mat_<unsigned char> qt_segment::get_marked_split()
 {
 	if (root == NULL) return Mat_<unsigned char>();
 	// copy image 
-	Mat_<unsigned char> marked = image;
+	Mat_<unsigned char> marked = image.clone();
 	Scalar color(128, 128, 128);
 	Scalar blk(0, 0, 0);
 	std::queue <Quadrant*> Q;

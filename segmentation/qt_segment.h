@@ -16,7 +16,7 @@ using namespace std;
 class qt_segment
 {	
 public:
-	qt_segment(Mat_<unsigned char>& in_image, 
+	qt_segment(const Mat_<unsigned char>& in_image, 
 		bool(*in_homogeneous)(const Mat_<unsigned char>&),
 		bool(*in_similar)(const Mat_<unsigned char>&, const Mat_<unsigned char>&));
 	~qt_segment();
