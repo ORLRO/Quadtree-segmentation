@@ -276,7 +276,7 @@ const Quadrant * Quadrant::get_top() const
 	}
 	else
 	{
-		get_immediate_top();
+		return get_immediate_top();
 	}
 }
 const Quadrant * Quadrant::get_bottom() const
@@ -295,7 +295,7 @@ const Quadrant * Quadrant::get_bottom() const
 	}
 	else
 	{
-		get_immediate_bottom();
+		return get_immediate_bottom();
 	}
 }
 
