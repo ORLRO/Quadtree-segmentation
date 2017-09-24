@@ -1,9 +1,11 @@
 #include "Quadrant.h"
 
-Quadrant::Quadrant(Mat_<unsigned char> in_img, const Quadrant * in_parent, int in_x0, int in_y0) :
+Quadrant::Quadrant(Mat_<unsigned char>& in_img, const Quadrant* in_parent, 
+	int in_x0, int in_y0, int in_width) :
 	img(in_img),
 	parent(in_parent),
-	x0(in_x0), y0(in_y0)
+	x0(in_x0), y0(in_y0),
+	width(in_width)
 {
 	Qs[0][0] = NULL;		Qs[0][1] = NULL;
 	Qs[1][0] = NULL;		Qs[1][1] = NULL;
@@ -198,6 +200,12 @@ void Quadrant::get_bottom_children(vector<const Quadrant*>& results) const
 		Qs[1][0]->get_bottom_children(results);
 		Qs[1][1]->get_bottom_children(results);
 	}
+}
+
+Mat_<unsigned char> Quadrant::get_quadrant_region() const
+{
+	Rect region_of_interest = Rect(x0, y0, width, width);
+	return img(region_of_interest);
 }
 
 vector<const Quadrant*> Quadrant::get_left_adjacencies() const

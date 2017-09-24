@@ -11,8 +11,8 @@ using namespace std;
 class Quadrant
 {
 public:
-	Quadrant(Mat_<unsigned char> in_img, const Quadrant* in_parent, 
-		int in_x0, int in_y0);
+	Quadrant(Mat_<unsigned char>& in_img, const Quadrant* in_parent, 
+		int in_x0, int in_y0, int in_width);
 	~Quadrant();
 private:
 	const Quadrant* get_first_right_parent(stack<bool>& vertical_moves) const;
@@ -35,6 +35,7 @@ private:
 	//finds all child nodes touching the bottom edge 
 	void get_bottom_children(vector<const Quadrant*>& results) const;
 public:
+	Mat_<unsigned char> get_quadrant_region() const;
 	vector<const Quadrant*> get_left_adjacencies()const;
 	vector<const Quadrant*> get_top_adjacencies()const;
 	const Quadrant* get_left() const;
@@ -45,6 +46,7 @@ public:
 	bool isRoot() const;
 	bool isLeaf() const;
 	///carefull: check !isRoot() before using those
+	//TODO don't use parent-> must be done after each quadranr represent itself only
 	bool isTopLeft() const;
 	bool isTopRight() const;
 	bool isBottomLeft() const;
@@ -56,15 +58,17 @@ public:
 
 public:
 	//TODO: each quadrant must represent itself not its children
-	const Quadrant* parent; // parent
 	Quadrant* Qs[2][2]; //children quadrants in 2x2 array
 	unsigned char siLabel[2][2];//label similar quadrant with same number (i: inner)
 	bool svoLabel[2][2]; // is quadrant [s]imilar to its [v]ertical [o]uter neighbor 
 	bool shoLabel[2][2]; // is quadrant [s]imilar to its [h]orizontal [o]uter neighbor 
-
 	int x0, y0; // top left pixel coordinates in the original image
-	Mat_<unsigned char> img;// portion of the image in this quadrant
+	int width; //width of the quadrant in pixels
 	//TODO use smart pointers
 	Label* label; //for connected components labeling - CCL
+private:
+	Mat_<unsigned char>& img; // the whole image to be segmented 
+	const Quadrant* parent; // parent
+	
 };
 

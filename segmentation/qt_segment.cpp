@@ -10,7 +10,7 @@ qt_segment::qt_segment(const Mat_<unsigned char>& in_image,
 	similar(in_similar)
 {
 	//TODO: assume image size is power of 2 (what if not)
-	root = new Quadrant(image, NULL, 0, 0);
+	root = new Quadrant(image, NULL, 0, 0, image.cols);
 	//split on creation
 	//cimg::tic();
 	//split_merge(root);
@@ -42,7 +42,7 @@ Mat_<unsigned char> qt_segment::get_marked_split()
 		Quadrant* current = Q.front();
 		int ix0 = current->x0;
 		int iy0 = current->y0;
-		int iL = current->img.cols;
+		int iL = current->width;
 
 
 		Q.pop(); // removing the element at front
@@ -114,7 +114,7 @@ Mat_<unsigned char> qt_segment::get_marked_split_merged()
 
 		int ix0 = current->x0;
 		int iy0 = current->y0;
-		int iL = current->img.cols;
+		int iL = current->width;
 
 		if (!current->isLeaf())//not leaf
 		{
@@ -176,7 +176,7 @@ Mat_<unsigned char> qt_segment::get_labeled()
 
 		int ix0 = current->x0;
 		int iy0 = current->y0;
-		int iL = current->img.cols;
+		int iL = current->width;
 
 		if (!current->isLeaf())//not leaf
 		{
@@ -187,36 +187,7 @@ Mat_<unsigned char> qt_segment::get_labeled()
 		}
 		else //leaf
 		{
-			//draw [i]nner split lines
-			if (current->siLabel[0][0] != current->siLabel[0][1])
-				line(marked, Point(ix0 + iL / 2, iy0), Point(ix0 + iL / 2, iy0 + iL / 2), color);
-			if (current->siLabel[1][0] != current->siLabel[1][1])
-				line(marked, Point(ix0 + iL / 2, iy0 + iL / 2), Point(ix0 + iL / 2, iy0 + iL), color);
-
-			if (current->siLabel[0][0] != current->siLabel[1][0])
-				line(marked, Point(ix0, iy0 + iL / 2), Point(ix0 + iL / 2, iy0 + iL / 2), color);
-			if (current->siLabel[0][1] != current->siLabel[1][1])
-				line(marked, Point(ix0 + iL / 2, iy0 + iL / 2), Point(ix0 + iL, iy0 + iL / 2), color);
-			//draw [o]uter [v]ertical similarity split lines (horizontal lines)
-			if (!current->svoLabel[0][0])
-				line(marked, Point(ix0, iy0), Point(ix0 + iL, iy0), color);
-			if (!current->svoLabel[0][1])
-				line(marked, Point(ix0 + iL, iy0), Point(ix0 + iL, iy0), color);
-
-			if (!current->svoLabel[1][0])
-				line(marked, Point(ix0, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
-			if (!current->svoLabel[1][1])
-				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
-			//draw [o]uter [h]orizontal similarity split lines (vertical lines)
-			if (!current->shoLabel[0][0])
-				line(marked, Point(ix0, iy0), Point(ix0, iy0 + iL), color);
-			if (!current->shoLabel[0][1])
-				line(marked, Point(ix0 + iL, iy0), Point(ix0 + iL, iy0 + iL), color);
-
-			if (!current->shoLabel[1][0])
-				line(marked, Point(ix0, iy0 + iL), Point(ix0, iy0 + iL), color);
-			if (!current->shoLabel[1][1])
-				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
+		
 		}
 
 	}
@@ -243,7 +214,7 @@ void qt_segment::label(Quadrant * q)
 		all_adjacencies.insert(all_adjacencies.end(), tops.begin(), tops.end());
 		for each (auto adj in all_adjacencies)
 		{
-			if (similar(q->img, adj->img))
+			if (similar(q->get_quadrant_region(), adj->get_quadrant_region()))
 			{
 				if (!anyOneSimilarToMe)//yet
 				{
@@ -283,19 +254,19 @@ void qt_segment::merge_quadrant_inside(Quadrant * q)
 {
 	if (!q->isLeaf())
 	{
-		if (similar(q->Qs[0][0]->img, q->Qs[0][1]->img))
+		if (similar(q->Qs[0][0]->get_quadrant_region(), q->Qs[0][1]->get_quadrant_region()))
 		{
 			q->siLabel[0][1] = 0;
 		}
-		if (similar(q->Qs[0][0]->img, q->Qs[1][0]->img))
+		if (similar(q->Qs[0][0]->get_quadrant_region(), q->Qs[1][0]->get_quadrant_region()))
 		{
 			q->siLabel[1][0] = 0;
 		}
-		if (similar(q->Qs[0][1]->img, q->Qs[1][1]->img))
+		if (similar(q->Qs[0][1]->get_quadrant_region(), q->Qs[1][1]->get_quadrant_region()))
 		{
 			q->siLabel[1][1] = q->siLabel[0][1];
 		}
-		if (similar(q->Qs[1][0]->img, q->Qs[1][1]->img))
+		if (similar(q->Qs[1][0]->get_quadrant_region(), q->Qs[1][1]->get_quadrant_region()))
 		{
 			if (q->siLabel[1][0] != 0)
 				q->siLabel[1][0] = q->siLabel[1][1];
@@ -318,29 +289,29 @@ void qt_segment::merge_quadrant_outside(Quadrant * q)
 		{
 			const Quadrant* left = q->get_left();
 			const Quadrant* top = q->get_top();
-			if (left != NULL && left->isLeaf() && !similar(q->img, left->img)) q->shoLabel[0][0] = false;
-			if (top != NULL && top->isLeaf() && !similar(q->img, top->img)) q->svoLabel[0][0] = false;
+			if (left != NULL && left->isLeaf() && !similar(q->get_quadrant_region(), left->get_quadrant_region())) q->shoLabel[0][0] = false;
+			if (top != NULL && top->isLeaf() && !similar(q->get_quadrant_region(), top->get_quadrant_region())) q->svoLabel[0][0] = false;
 		}
 		else if (q->isTopRight())
 		{
 			const Quadrant* right = q->get_right();
 			const Quadrant* top = q->get_top();
-			if (right != NULL && right->isLeaf() && !similar(q->img, right->img)) q->shoLabel[0][1] = false;
-			if (top != NULL && top->isLeaf() && !similar(q->img, top->img)) q->svoLabel[0][1] = false;
+			if (right != NULL && right->isLeaf() && !similar(q->get_quadrant_region(), right->get_quadrant_region())) q->shoLabel[0][1] = false;
+			if (top != NULL && top->isLeaf() && !similar(q->get_quadrant_region(), top->get_quadrant_region())) q->svoLabel[0][1] = false;
 		}
 		else if (q->isBottomLeft())
 		{
 			const Quadrant* left = q->get_left();
 			const Quadrant* bottom = q->get_bottom();
-			if (left != NULL && left->isLeaf() && !similar(q->img, left->img)) q->shoLabel[1][0] = false;
-			if (bottom != NULL && bottom->isLeaf() && !similar(q->img, bottom->img)) q->svoLabel[1][0] = false;
+			if (left != NULL && left->isLeaf() && !similar(q->get_quadrant_region(), left->get_quadrant_region())) q->shoLabel[1][0] = false;
+			if (bottom != NULL && bottom->isLeaf() && !similar(q->get_quadrant_region(), bottom->get_quadrant_region())) q->svoLabel[1][0] = false;
 		}
 		else if (q->isBottomRight())
 		{
 			const Quadrant* right = q->get_right();
 			const Quadrant* bottom = q->get_bottom();
-			if (right != NULL && right->isLeaf() && !similar(q->img, right->img)) q->shoLabel[1][1] = false;
-			if (bottom != NULL && bottom->isLeaf() && !similar(q->img, bottom->img)) q->svoLabel[1][1] = false;
+			if (right != NULL && right->isLeaf() && !similar(q->get_quadrant_region(), right->get_quadrant_region())) q->shoLabel[1][1] = false;
+			if (bottom != NULL && bottom->isLeaf() && !similar(q->get_quadrant_region(), bottom->get_quadrant_region())) q->svoLabel[1][1] = false;
 		}
 	}
 }
@@ -351,20 +322,24 @@ void qt_segment::split_merge(Quadrant * q)
 	//minMaxLoc(q->img, mx, mn, NULL, NULL);
 	//return mx - mn < 90;
 	//if not homogeneous -> split
-	if (!homogeneous(q->img))
+	if (!homogeneous(q->get_quadrant_region()))
 	{
 		int ix0 = q->x0;
 		int iy0 = q->y0;
-		int iL = q->img.cols;
+		int iL = q->width;
 
 		//top-left
-		q->Qs[0][0] = new Quadrant(q->img(Rect(0, 0, iL / 2 - 1, iL / 2 - 1)), q, ix0, iy0);
+		//q->Qs[0][0] = new Quadrant(q->img(Rect(0, 0, iL / 2 - 1, iL / 2 - 1)), q, ix0, iy0);
+		q->Qs[0][0] = new Quadrant(image, q, ix0, iy0, iL / 2);
 		//top-right
-		q->Qs[0][1] = new Quadrant(q->img(Rect(iL / 2, 0, iL - 1, iL / 2 - 1)), q, ix0 + iL / 2, iy0);
+		//q->Qs[0][1] = new Quadrant(q->img(Rect(iL / 2, 0, iL - 1, iL / 2 - 1)), q, ix0 + iL / 2, iy0);
+		q->Qs[0][1] = new Quadrant(image, q, ix0 + iL / 2, iy0, iL / 2);
 		//bottom-left
-		q->Qs[1][0] = new Quadrant(q->img(Rect(0, iL / 2, iL / 2 - 1, iL - 1)), q, ix0, iy0 + iL / 2);
+		//q->Qs[1][0] = new Quadrant(q->img(Rect(0, iL / 2, iL / 2 - 1, iL - 1)), q, ix0, iy0 + iL / 2);
+		q->Qs[1][0] = new Quadrant(image, q, ix0, iy0 + iL / 2, iL / 2);
 		//bottom-right
-		q->Qs[1][1] = new Quadrant(q->img(Rect(iL / 2, iL / 2, iL - 1, iL - 1)), q, ix0 + iL / 2, iy0 + iL / 2);
+		//q->Qs[1][1] = new Quadrant(q->img(Rect(iL / 2, iL / 2, iL - 1, iL - 1)), q, ix0 + iL / 2, iy0 + iL / 2);
+		q->Qs[1][1] = new Quadrant(image, q, ix0 + iL / 2, iy0 + iL / 2, iL / 2);
 		merge_quadrant_inside(q); //merges only the current quadrant being split
 
 		split_merge(q->Qs[0][0]);
@@ -377,22 +352,26 @@ void qt_segment::split_merge(Quadrant * q)
 void qt_segment::split(Quadrant * q)
 {
 	//if not homogeneous -> split
-	if (!homogeneous(q->img))
+	if (!homogeneous(q->get_quadrant_region()))
 	{
 		int ix0 = q->x0;
 		int iy0 = q->y0;
-		int iL = q->img.cols;
+		int iL = q->width;
 		//top-left
-		q->Qs[0][0] = new Quadrant(q->img(Rect(0, 0, iL/2, iL / 2)), q, ix0, iy0);
+		//q->Qs[0][0] = new Quadrant(q->img(Rect(0, 0, iL/2, iL / 2)), q, ix0, iy0);
+		q->Qs[0][0] = new Quadrant(image, q, ix0, iy0, iL / 2);
 		split(q->Qs[0][0]);
 		//top-right
-		q->Qs[0][1] = new Quadrant(q->img(Rect(iL / 2, 0, iL / 2, iL / 2)), q, ix0 + iL / 2, iy0);
+		//q->Qs[0][1] = new Quadrant(q->img(Rect(iL / 2, 0, iL / 2, iL / 2)), q, ix0 + iL / 2, iy0);
+		q->Qs[0][1] = new Quadrant(image, q, ix0 + iL / 2, iy0, iL / 2);
 		split(q->Qs[0][1]);
 		//bottom-left
-		q->Qs[1][0] = new Quadrant(q->img(Rect(0, iL / 2, iL / 2, iL / 2)), q, ix0, iy0 + iL / 2);
+		//q->Qs[1][0] = new Quadrant(q->img(Rect(0, iL / 2, iL / 2, iL / 2)), q, ix0, iy0 + iL / 2);
+		q->Qs[1][0] = new Quadrant(image, q, ix0, iy0 + iL / 2, iL / 2);
 		split(q->Qs[1][0]);
 		//bottom-right
-		q->Qs[1][1] = new Quadrant(q->img(Rect(iL / 2, iL / 2, iL/ 2, iL/ 2)), q, ix0 + iL / 2, iy0 + iL / 2);
+		//q->Qs[1][1] = new Quadrant(q->img(Rect(iL / 2, iL / 2, iL/ 2, iL/ 2)), q, ix0 + iL / 2, iy0 + iL / 2);
+		q->Qs[1][1] = new Quadrant(image, q, ix0 + iL / 2, iy0 + iL / 2, iL / 2);
 		split(q->Qs[1][1]);
 	}
 
