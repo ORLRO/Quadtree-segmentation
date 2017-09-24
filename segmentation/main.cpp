@@ -1,6 +1,6 @@
 #define cimg_use_png
+//TODO: quadrdants should not have separate copies of the image
 
-//#include "CImg.h"
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>

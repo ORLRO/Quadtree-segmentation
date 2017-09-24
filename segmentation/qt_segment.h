@@ -22,6 +22,7 @@ public:
 	~qt_segment();
 	Mat_<unsigned char> get_marked_split();
 	Mat_<unsigned char> get_marked_split_merged();
+	Mat_<unsigned char> get_labeled();
 private:	
 	void label(Quadrant* q);
 	void merge(Quadrant* q);

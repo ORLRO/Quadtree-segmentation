@@ -16,6 +16,7 @@ qt_segment::qt_segment(const Mat_<unsigned char>& in_image,
 	//split_merge(root);
 
 	split(root); merge(root);
+	label(root);
 	//cimg::toc();
 }
 qt_segment::~qt_segment()
@@ -160,6 +161,68 @@ Mat_<unsigned char> qt_segment::get_marked_split_merged()
 	return marked;
 }
 
+Mat_<unsigned char> qt_segment::get_labeled()
+{
+	if (root == NULL) return Mat_<unsigned char>();
+
+	Mat_<unsigned char> marked = Mat::zeros(512, 512, CV_8UC1);//TODO fixed size!!
+	std::queue <Quadrant*> Q;
+	Q.push(root);
+	//while there is at least one discovered node
+	while (!Q.empty())
+	{
+		Quadrant* current = Q.front();
+		Q.pop(); // removing the element at front
+
+		int ix0 = current->x0;
+		int iy0 = current->y0;
+		int iL = current->img.cols;
+
+		if (!current->isLeaf())//not leaf
+		{
+			Q.push(current->Qs[0][0]);
+			Q.push(current->Qs[0][1]);
+			Q.push(current->Qs[1][0]);
+			Q.push(current->Qs[1][1]);
+		}
+		else //leaf
+		{
+			//draw [i]nner split lines
+			if (current->siLabel[0][0] != current->siLabel[0][1])
+				line(marked, Point(ix0 + iL / 2, iy0), Point(ix0 + iL / 2, iy0 + iL / 2), color);
+			if (current->siLabel[1][0] != current->siLabel[1][1])
+				line(marked, Point(ix0 + iL / 2, iy0 + iL / 2), Point(ix0 + iL / 2, iy0 + iL), color);
+
+			if (current->siLabel[0][0] != current->siLabel[1][0])
+				line(marked, Point(ix0, iy0 + iL / 2), Point(ix0 + iL / 2, iy0 + iL / 2), color);
+			if (current->siLabel[0][1] != current->siLabel[1][1])
+				line(marked, Point(ix0 + iL / 2, iy0 + iL / 2), Point(ix0 + iL, iy0 + iL / 2), color);
+			//draw [o]uter [v]ertical similarity split lines (horizontal lines)
+			if (!current->svoLabel[0][0])
+				line(marked, Point(ix0, iy0), Point(ix0 + iL, iy0), color);
+			if (!current->svoLabel[0][1])
+				line(marked, Point(ix0 + iL, iy0), Point(ix0 + iL, iy0), color);
+
+			if (!current->svoLabel[1][0])
+				line(marked, Point(ix0, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
+			if (!current->svoLabel[1][1])
+				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
+			//draw [o]uter [h]orizontal similarity split lines (vertical lines)
+			if (!current->shoLabel[0][0])
+				line(marked, Point(ix0, iy0), Point(ix0, iy0 + iL), color);
+			if (!current->shoLabel[0][1])
+				line(marked, Point(ix0 + iL, iy0), Point(ix0 + iL, iy0 + iL), color);
+
+			if (!current->shoLabel[1][0])
+				line(marked, Point(ix0, iy0 + iL), Point(ix0, iy0 + iL), color);
+			if (!current->shoLabel[1][1])
+				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
+		}
+
+	}
+	return marked;
+}
+
 void qt_segment::label(Quadrant * q)
 {
 	if (q == NULL) return;
@@ -173,18 +236,28 @@ void qt_segment::label(Quadrant * q)
 	}
 	else //leaf
 	{
-		bool anyoneSimilarToMe = false;
 		vector<const Quadrant*> lefts = q->get_left_adjacencies();
 		vector<const Quadrant*> tops = q->get_top_adjacencies();
 		vector<const Quadrant*> all_adjacencies = lefts;
+		bool anyOneSimilarToMe = false;
 		all_adjacencies.insert(all_adjacencies.end(), tops.begin(), tops.end());
 		for each (auto adj in all_adjacencies)
 		{
 			if (similar(q->img, adj->img))
 			{
-				q->label.setequivalentTo(adj->label);
+				if (!anyOneSimilarToMe)//yet
+				{
+					q->label = adj->label;
+				}
+				else
+				{
+					q->label->setequivalentTo(adj->label);
+				}
+				anyOneSimilarToMe = true;
 			}
 		}
+		if(!anyOneSimilarToMe)
+			q->label = new Label();		
 	}
 }
 void qt_segment::merge(Quadrant * q)

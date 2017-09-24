@@ -64,6 +64,7 @@ public:
 
 	int x0, y0; // top left pixel coordinates in the original image
 	Mat_<unsigned char> img;// portion of the image in this quadrant
-	Label label; //for connected components labeling - CCL
+	//TODO use smart pointers
+	Label* label; //for connected components labeling - CCL
 };
 

@@ -18,6 +18,7 @@ Quadrant::Quadrant(Mat_<unsigned char> in_img, const Quadrant * in_parent, int i
 	shoLabel[0][0] = true;	shoLabel[0][1] = true;
 	shoLabel[1][0] = true;	shoLabel[1][1] = true;
 
+	label = nullptr;
 }
 
 Quadrant::~Quadrant()

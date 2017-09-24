@@ -8,7 +8,7 @@ Label::Label()
 	createNewLabel();
 }
 
-void Label::setequivalentTo(Label in_Label)
+void Label::setequivalentTo(Label* in_Label)
 {
 	equivalentTo.push_back(in_Label);
 }
