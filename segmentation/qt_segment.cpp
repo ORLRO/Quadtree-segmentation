@@ -182,8 +182,7 @@ void qt_segment::label(Quadrant * q)
 		{
 			if (similar(q->img, adj->img))
 			{
-				Label newlabel;
-				q->label = newlabel;
+				q->label.setequivalentTo(adj->label);
 			}
 		}
 	}

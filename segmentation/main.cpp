@@ -8,15 +8,16 @@
 #include "qt_segment.h"
 #include <iostream>
 
-//TODO: linear combination os multiple factors!(WOW)
+//TODO: linear combination of multiple factors!
 // define * operator
 // define + operator
 
 using namespace std;
 using namespace cv;
 
-unsigned char threshold2 = 90;//must be global (-_-) TODO: deal with it
-					//OR hard coded in the function (un-controllable)
+unsigned char threshold2 = 90;//must be global (-_-) 
+							//TODO: deal with it
+							//OR hard coded in the function (un-controllable)
 bool similar(const Mat_<unsigned char>& A, const Mat_<unsigned char>& B)
 {
 	double Amx, Amn, Bmx, Bmn;
