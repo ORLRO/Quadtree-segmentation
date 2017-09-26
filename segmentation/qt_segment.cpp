@@ -156,7 +156,6 @@ Mat_<unsigned char> qt_segment::get_marked_split_merged()
 			if (!current->shoLabel[1][1])
 				line(marked, Point(ix0 + iL, iy0 + iL), Point(ix0 + iL, iy0 + iL), color);
 		}
-
 	}
 	return marked;
 }
@@ -165,7 +164,8 @@ Mat_<unsigned char> qt_segment::get_labeled()
 {
 	if (root == NULL) return Mat_<unsigned char>();
 
-	Mat_<unsigned char> marked = Mat::zeros(512, 512, CV_8UC1);//TODO fixed size!!
+	Mat_<unsigned char> labeled = Mat::zeros(512, 512, CV_8U);//TODO fixed size!!
+	Mat_<unsigned char> colored;
 	std::queue <Quadrant*> Q;
 	Q.push(root);
 	//while there is at least one discovered node
@@ -187,11 +187,14 @@ Mat_<unsigned char> qt_segment::get_labeled()
 		}
 		else //leaf
 		{
-		
+			Mat_<unsigned char> ROI = labeled(cv::Rect(ix0, iy0, iL, iL));
+			
+			ROI.setTo(Scalar((unsigned char)current->label->get_id() % 256));
+			//cout << current->label->get_id() << '\t';
 		}
-
 	}
-	return marked;
+	//applyColorMap(labeled, colored, COLORMAP_HSV);
+	return labeled;
 }
 
 void qt_segment::label(Quadrant * q)

@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 	// initial segmentation
 	qt_segment* QT = new qt_segment(image,  homogeneous, similar );
 	Mat_<unsigned char>marked = QT->get_marked_split();
-	Mat_<unsigned char>marked2 = QT->get_marked_split_merged();
+	Mat_<unsigned char>marked2 = QT->get_labeled();
 	imshow("Main window", marked);
 	imshow("Segment window", marked2);
 	cout << (int)threshold2 << endl;
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 			threshold2 -= 5;
 			QT = new qt_segment(image, homogeneous, similar);
 			imshow("Main window", QT->get_marked_split());
-			imshow("Segment window", QT->get_marked_split_merged());
+			imshow("Segment window", QT->get_labeled());
 
 			cout << (int)threshold2 << endl;
 		}
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
 			threshold2 += 5;
 			QT = new qt_segment(image, homogeneous, similar);
 			imshow("Main window", QT->get_marked_split());
-			imshow("Segment window", QT->get_marked_split_merged());
+			imshow("Segment window", QT->get_labeled());
 			cout << (int)threshold2 << endl;
 		}		
 	} while (c != 27);
