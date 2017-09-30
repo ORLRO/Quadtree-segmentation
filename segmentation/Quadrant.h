@@ -55,7 +55,11 @@ public:
 	bool isBottom() const;
 	bool isRight() const;
 	bool isLeft() const;
+	
+	void set_Label(Label*);
+	Label* get_Label() const;
 
+	void set_equevelant_Label_to(const Quadrant*);
 public:
 	//TODO: each quadrant must represent itself not its children
 	Quadrant* Qs[2][2]; //children quadrants in 2x2 array
@@ -64,9 +68,9 @@ public:
 	bool shoLabel[2][2]; // is quadrant [s]imilar to its [h]orizontal [o]uter neighbor 
 	int x0, y0; // top left pixel coordinates in the original image
 	int width; //width of the quadrant in pixels
-	//TODO use smart pointers
-	Label* label; //for connected components labeling - CCL
+	
 private:
+	Label* label; //for connected components labeling - CCL
 	Mat_<unsigned char>& img; // the whole image to be segmented 
 	const Quadrant* parent; // parent
 	

@@ -1,20 +1,27 @@
 #pragma once
+//#include "Quadrant.h"
 
-#include <vector>
+#include <queue>
+#include <stack>
+
 using namespace std;
 
 class Label
 {
-public:
+private:
 	Label();
+	void initializeNewLabel();
+public:
 	void setequivalentTo(Label* in_Label);
 	static Label* get_Label_by_id(int i);
 	int get_id() { return index; }
-private:
-	void createNewLabel();
+	static Label* get_unusedLabel();
+	void addToStack(Quadrant*);
+	
 private:
 	int index;
-	vector<Label*> equivalentTo;
+	stack<Quadrant*> PointingToMe;
 	static int latestIndex;
 	static vector<Label*> allLabels;
+	static queue<Label*> unusedLabels;
 };

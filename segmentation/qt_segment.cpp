@@ -189,7 +189,7 @@ Mat_<unsigned char> qt_segment::get_labeled()
 		{
 			Mat_<unsigned char> ROI = labeled(cv::Rect(ix0, iy0, iL, iL));
 			
-			ROI.setTo(Scalar((unsigned char)current->label->get_id() % 256));
+			ROI.setTo(Scalar((unsigned char)current->get_Label()->get_id() % 256));
 			//cout << current->label->get_id() << '\t';
 		}
 	}
@@ -221,17 +221,20 @@ void qt_segment::label(Quadrant * q)
 			{
 				if (!anyOneSimilarToMe)//yet
 				{
-					q->label = adj->label;
+					q->set_Label(adj->get_Label());
 				}
 				else
 				{
-					q->label->setequivalentTo(adj->label);
+					q->set_equevelant_Label_to(adj);
 				}
 				anyOneSimilarToMe = true;
 			}
 		}
 		if(!anyOneSimilarToMe)
-			q->label = new Label();		
+			{
+				q->set_Label(Label::get_unusedLabel());
+			}
+
 	}
 }
 void qt_segment::merge(Quadrant * q)

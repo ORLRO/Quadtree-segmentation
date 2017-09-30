@@ -327,3 +327,19 @@ bool Quadrant::isTop() const { return isTopLeft() || isTopRight(); }
 bool Quadrant::isBottom() const { return isBottomLeft() || isBottomRight(); }
 bool Quadrant::isRight() const { return isTopRight() || isBottomRight(); }
 bool Quadrant::isLeft() const { return isTopLeft() || isBottomLeft(); }
+
+void Quadrant::set_Label(Label* in_Label)
+{
+	label = in_Label;
+	label->addToStack(this);
+}
+
+Label* Quadrant::get_Label() const 
+{
+	return label;
+}
+
+void Quadrant::set_equevelant_Label_to(const Quadrant* other_quad)
+{
+	label->setequivalentTo(other_quad->get_Label());
+}
