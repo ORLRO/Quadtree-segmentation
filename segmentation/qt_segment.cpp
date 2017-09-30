@@ -15,7 +15,8 @@ qt_segment::qt_segment(const Mat_<unsigned char>& in_image,
 	//cimg::tic();
 	//split_merge(root);
 
-	split(root); merge(root);
+	split(root); 
+	merge(root);
 	label(root);
 	//cimg::toc();
 }

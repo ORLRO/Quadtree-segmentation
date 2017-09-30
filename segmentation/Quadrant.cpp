@@ -345,5 +345,6 @@ Quadrant::Label* Quadrant::get_Label() const
 
 void Quadrant::set_equevelant_Label_to(const Quadrant* other_quad)
 {
-	label->setequivalentTo(other_quad->get_Label());
+	if (label != other_quad->get_Label())
+		label->setequivalentTo(other_quad->get_Label());
 }
