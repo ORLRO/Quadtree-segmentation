@@ -3,6 +3,7 @@
 #include <opencv2/core.hpp>
 #include "Label.h"
 #include <stack> 
+#include <queue>
 #include <vector>
 
 using namespace cv;
@@ -10,6 +11,75 @@ using namespace std;
 
 class Quadrant
 {
+public:
+	class Label
+	{
+	private:
+
+		Label()
+		{
+			initializeNewLabel();
+		}
+		void initializeNewLabel()
+		{
+			index = latestIndex++;
+			allLabels.push_back(this);
+		}
+	public:
+		int get_id() { return index; }
+		void setequivalentTo(Label* in_Label)
+		{
+			stack<Quadrant*>& PointingToOther = in_Label->PointingToMe;
+			if (PointingToMe.size() > PointingToOther.size())
+			{
+				while (PointingToOther.size())
+				{
+					auto quad = PointingToOther.top();
+					PointingToOther.pop();
+					quad->set_Label(this);
+				}
+				unusedLabels.push(in_Label);
+			}
+			else
+			{
+				while (PointingToMe.size())
+				{
+					auto quad = PointingToMe.top();
+					PointingToMe.pop();
+					quad->set_Label(in_Label);
+				}
+				unusedLabels.push(this);
+			}
+		}
+		void addToStack(Quadrant* in_quad)
+		{
+			PointingToMe.push(in_quad);
+		}
+		static Label* get_Label_by_id(int i)
+		{
+			return allLabels.at(i);
+		}
+		static Label* get_unusedLabel()
+		{
+			if (unusedLabels.size())
+			{
+				auto lbl = unusedLabels.front();
+				unusedLabels.pop();
+				return lbl;
+			}
+			else
+			{
+				return new Label();
+			}
+		}
+
+	private:
+		int index;
+		stack<Quadrant*> PointingToMe;
+		static int latestIndex;
+		static vector<Label*> allLabels;
+		static queue<Label*> unusedLabels;
+	};
 public:
 	Quadrant(Mat_<unsigned char>& in_img, const Quadrant* in_parent, 
 		int in_x0, int in_y0, int in_width);
@@ -74,5 +144,9 @@ private:
 	Mat_<unsigned char>& img; // the whole image to be segmented 
 	const Quadrant* parent; // parent
 	
+	
 };
+
+
+
 

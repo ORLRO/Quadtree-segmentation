@@ -232,7 +232,7 @@ void qt_segment::label(Quadrant * q)
 		}
 		if(!anyOneSimilarToMe)
 			{
-				q->set_Label(Label::get_unusedLabel());
+				q->set_Label(Quadrant::Label::get_unusedLabel());
 			}
 
 	}

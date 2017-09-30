@@ -1,5 +1,9 @@
 #include "Quadrant.h"
 
+int Quadrant::Label::latestIndex = 0;
+vector<Quadrant::Label*> Quadrant::Label::allLabels;
+queue<Quadrant::Label*> Quadrant::Label::unusedLabels;
+
 Quadrant::Quadrant(Mat_<unsigned char>& in_img, const Quadrant* in_parent, 
 	int in_x0, int in_y0, int in_width) :
 	img(in_img),
@@ -328,13 +332,13 @@ bool Quadrant::isBottom() const { return isBottomLeft() || isBottomRight(); }
 bool Quadrant::isRight() const { return isTopRight() || isBottomRight(); }
 bool Quadrant::isLeft() const { return isTopLeft() || isBottomLeft(); }
 
-void Quadrant::set_Label(Label* in_Label)
+void Quadrant::set_Label(Quadrant::Label* in_Label)
 {
 	label = in_Label;
 	label->addToStack(this);
 }
 
-Label* Quadrant::get_Label() const 
+Quadrant::Label* Quadrant::get_Label() const
 {
 	return label;
 }
